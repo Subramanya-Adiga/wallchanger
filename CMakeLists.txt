@@ -18,6 +18,8 @@ endif()
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC pch.h)
 
+add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
+add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/range-v3")
 if(BUILD_TESTING)
 endif()
 
@@ -52,4 +54,5 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 target_link_libraries(${PROJECT_NAME}
-                      PRIVATE Boost::serialization Boost::container Qt5::Core)
+                      PRIVATE Boost::serialization Boost::container Qt5::Core 
+                              spdlog::spdlog range-v3::range-v3)
