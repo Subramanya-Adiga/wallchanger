@@ -5,10 +5,6 @@
 #include <deque>
 #include <filesystem>
 #include <fstream>
-#include <gdkmm.h>
-#include <giomm.h>
-#include <glibmm.h>
-#include <gtkmm.h>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
@@ -22,20 +18,19 @@
 #include <vector>
 
 #ifdef _WIN32
-//#include <Objbase.h>
-//#include <Objbase.h>
-//#include <windows.h>
-//#include <bcrypt.h>
-//#include <ntstatus.h>
-//#include <versionhelpers.h>
-//#include <wincrypt.h>
+#include <windows.h>
+#include <Shobjidl.h>
 #elif __linux__
+#include <dconf.h>
+#include <glib.h>
 #include <sys/random.h>
 #include <uuid.h>
 #else
 #error unsunsupported platform
 #endif
 
+#include "src/log.h"
+#include "src/scoped_timer.h"
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/container/small_vector.hpp>
@@ -43,5 +38,3 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
-#include <log.h>
-#include <scoped_timer.h>
