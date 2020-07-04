@@ -73,5 +73,6 @@ Thumbs.db
 
 build/*
 .clangd/*
+.vscode/*
 CMakeLists.txt.user
 compile_commands.json

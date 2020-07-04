@@ -23,5 +23,5 @@ bool wall_changer::wall_cache_lib::exists(
 bool wall_changer::wall_cache_lib::modified() const noexcept {
   auto rng_it = ranges::find_if(
       m_cache_vec, [](auto &&type) { return type.second.modified(); });
-  return rng_it->second.modified() && m_inserted;
+  return rng_it->second.modified();
 }

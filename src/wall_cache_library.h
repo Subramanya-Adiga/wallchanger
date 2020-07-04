@@ -17,8 +17,6 @@ public:
   using value_type = cache_type;
 
   wall_cache_lib() = default;
-  explicit wall_cache_lib(std::string_view cache_loc)
-      : m_cache_loc(cache_loc), m_inserted(false) {}
 
   template <typename T>
   void insert(const std::string &name, T &&value) noexcept {
@@ -43,9 +41,6 @@ public:
   }
 
 private:
-  std::string_view m_cache_loc;
-  bool m_inserted;
-  bool m_loaded;
   small_cache m_cache_vec;
   inline void m_clear_empty() noexcept {
     ranges::actions::drop_while(
