@@ -29,8 +29,12 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC pch.h)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/range-v3")
+add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/fmtlib")
+add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/catch2")
 if(BUILD_TESTING)
-
+  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
+  include(Catch)
+  # catch_discover_tests(foo)
 endif()
 
 if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
@@ -76,5 +80,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 target_link_libraries(
-  ${PROJECT_NAME} PRIVATE Boost::container spdlog::spdlog_header_only
-                          range-v3::range-v3 Boost::program_options)
+  ${PROJECT_NAME}
+  PRIVATE Boost::container spdlog::spdlog_header_only range-v3::range-v3
+          Boost::program_options fmt::fmt-header-only)

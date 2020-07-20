@@ -4,12 +4,10 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-namespace debug {
-
-namespace log {
+namespace debug::log {
 class logger {
   std::vector<std::shared_ptr<spdlog::logger>> log_vec_;
-  logger() {}
+  logger() = default;
 
 public:
   void create_logger(std::string_view name) {
@@ -57,5 +55,4 @@ public:
   debug::log::logger::get_instance().get_logger(name)->critical(__VA_ARGS__)
 #define LOGGER_SET_FILE(name, file)                                            \
   debug::log::logger::get_instance().add_file_sink(name, file)
-} // namespace log
-} // namespace debug
+} // namespace debug::log

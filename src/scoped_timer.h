@@ -1,7 +1,6 @@
 #pragma once
 
-namespace debug {
-namespace timer {
+namespace debug::timer {
 template <typename to_dur> class scoped_timer {
   using timer = std::chrono::time_point<std::chrono::steady_clock>;
   timer start_;
@@ -39,5 +38,4 @@ public:
 #define TIMER_NAME_SEC(name)                                                   \
   debug::timer::scoped_timer<std::chrono::seconds> timer##__LINE__(name, "s")
 #define TIMER_SEC() TIMER_NAME_SEC(__PRETTY_FUNCTION__)
-} // namespace timer
-} // namespace debug
+} // namespace debug::timer

@@ -18,8 +18,8 @@
 #include <vector>
 
 #ifdef _WIN32
-#include <windows.h>
 #include <Shobjidl.h>
+#include <windows.h>
 #elif __linux__
 #include <dconf.h>
 #include <glib.h>
@@ -38,3 +38,4 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
+#include <fmt/format.h>

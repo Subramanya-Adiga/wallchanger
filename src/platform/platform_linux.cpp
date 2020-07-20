@@ -9,8 +9,9 @@ wall_changer::platform::linux::background::background() {
 }
 
 wall_changer::platform::linux::background::~background() {
-  if (m_initialized)
+  if (m_initialized) {
     g_object_unref(G_OBJECT(m_client));
+  }
 }
 
 bool wall_changer::platform::linux::background::set_wallpaper(
