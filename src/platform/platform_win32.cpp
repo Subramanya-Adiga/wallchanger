@@ -28,7 +28,8 @@ bool wall_changer::platform::win32::background::set_wallpaper(
       m_wallpaper->SetPosition(
           static_cast<DESKTOP_WALLPAPER_POSITION>(position));
     } else {
-      m_wallpaper->SetPosition(position);
+      m_wallpaper->SetPosition(
+          static_cast<DESKTOP_WALLPAPER_POSITION>(position));
     }
   }
   return (result == S_OK);

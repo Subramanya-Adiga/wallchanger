@@ -32,7 +32,7 @@ public:
   wall_cache() = default;
   explicit wall_cache(size_type size) {
     size_type size_ = 0;
-    size_ = (size == 0) ? std::numeric_limits<unsigned char>::max() : size;
+    size_ = (size == 0) ? (std::numeric_limits<unsigned char>::max)() : size;
     cache_vec.reserve(size_);
   }
   void reserve(size_type size) { cache_vec.reserve(size); }

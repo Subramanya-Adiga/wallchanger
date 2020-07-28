@@ -14,14 +14,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(${PROJECT_NAME} PRIVATE src/platform/platform_linux.cpp)
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_DEBUG "-Wl,-v")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_WHAT_YOU_USE TRUE)
-
+  set(Boost_INCLUDE_DIR "/usr/local/include/boost-1_73")
   find_package(PkgConfig REQUIRED)
 
   pkg_check_modules(DCONF REQUIRED dconf)
   target_include_directories(${PROJECT_NAME} PRIVATE ${DCONF_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} PRIVATE ${DCONF_LIBRARIES})
-
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(Boost_INCLUDE_DIR "C:/boost/include/boost-1_73")
   target_sources(${PROJECT_NAME} PRIVATE src/platform/platform_win32.cpp)
 endif()
 
@@ -55,7 +55,6 @@ if(NOT MSVC)
 endif()
 set_project_warnings(${PROJECT_NAME})
 # Change To Find Boost Automatically on diffrent platforms
-set(Boost_INCLUDE_DIR "/usr/local/include/boost-1_73")
 add_definitions(-DBOOST_ALL_NO_LIB)
 set(Boost_DEBUG ON)
 set(Boost_NO_BOOST_CMAKE ON)
@@ -66,7 +65,7 @@ find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
 # find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
 # NO_DEFAULT_PATH)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT "Clang-CL")
   target_compile_options(${PROJECT_NAME} PRIVATE -stdlib=libc++ -flto=thin)
   set_target_properties(
     ${PROJECT_NAME}
