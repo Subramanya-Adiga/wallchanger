@@ -21,8 +21,6 @@
 #include <Shobjidl.h>
 #include <windows.h>
 #elif __linux__
-#include <dconf.h>
-#include <glib.h>
 #include <sys/random.h>
 #include <uuid.h>
 #else
