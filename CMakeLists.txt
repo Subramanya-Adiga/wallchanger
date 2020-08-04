@@ -28,10 +28,17 @@ build_lua("${CMAKE_SOURCE_DIR}/vendor/lua" ${PROJECT_NAME})
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/sol2")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/catch2")
 
+add_definitions(-DBOOST_ALL_NO_LIB)
+set(Boost_DEBUG OFF)
+set(Boost_NO_BOOST_CMAKE ON)
+set(Boost_ARCHITECTURE -x64)
+
+find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
+
 if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
   include(Catch)
-  # catch_discover_tests(foo)
+  add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
 endif()
 
 if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
@@ -51,13 +58,6 @@ if(NOT MSVC)
   endif()
 endif()
 set_project_warnings(${PROJECT_NAME})
-
-add_definitions(-DBOOST_ALL_NO_LIB)
-set(Boost_DEBUG OFF)
-set(Boost_NO_BOOST_CMAKE ON)
-set(Boost_ARCHITECTURE -x64)
-
-find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
 
 # find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
 # NO_DEFAULT_PATH)
