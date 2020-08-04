@@ -38,35 +38,38 @@ function(build_lua LUA_PATH TARGET)
             ${LUA_PATH}/lcorolib.c
             ${LUA_PATH}/linit.c)
 
-  target_compile_definitions(lua PRIVATE -DLUA_USE_LINUX -DLUA_USE_READLINE)
+  target_compile_definitions(lua
+                             PRIVATE -DLUA_USE_LINUX #[=[-DLUA_USE_READLINE]=])
   target_include_directories(lua INTERFACE "${LUA_PATH}/.")
-  target_compile_options(
-    lua
-    PRIVATE -Wall
-            -O2
-            -fmax-errors=5
-            -Wextra
-            -Wshadow
-            -Wsign-compare
-            -Wundef
-            -Wwrite-strings
-            -Wredundant-decls
-            -Wdisabled-optimization
-            -Wdouble-promotion
-            -Wlogical-op
-            -Wno-aggressive-loop-optimizations
-            -Wdeclaration-after-statement
-            -Wmissing-prototypes
-            -Wnested-externs
-            -Wstrict-prototypes
-            -Wc++-compat
-            -Wold-style-definition
-            -std=c99
-            -fno-stack-protector
-            -fno-common
-            -march=native)
-  find_library(READLINE_LIBRARY NAMES readline PATH /usr/lib /usr/local/lib
-                                      /opt/local/lib)
-  target_link_libraries(lua PRIVATE ${READLINE_LIBRARY} dl)
+  if(NOT MSVC AND (UNIX NOT APPLE))
+    target_compile_options(
+      lua
+      PRIVATE -Wall
+              -O2
+              -fmax-errors=5
+              -Wextra
+              -Wshadow
+              -Wsign-compare
+              -Wundef
+              -Wwrite-strings
+              -Wredundant-decls
+              -Wdisabled-optimization
+              -Wdouble-promotion
+              -Wlogical-op
+              -Wno-aggressive-loop-optimizations
+              -Wdeclaration-after-statement
+              -Wmissing-prototypes
+              -Wnested-externs
+              -Wstrict-prototypes
+              -Wc++-compat
+              -Wold-style-definition
+              -std=c99
+              -fno-stack-protector
+              -fno-common
+              -march=native)
+    target_link_libraries(lua PRIVATE #[=[${READLINE_LIBRARY}]=] dl)
+  endif()
+  #[=[find_library(READLINE_LIBRARY NAMES readline PATH /usr/lib /usr/local/lib
+                                      /opt/local/lib)]=]
   target_link_libraries(${TARGET} PRIVATE lua::lua_static)
 endfunction()

@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(WallChanger LANGUAGES CXX C)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
-include(CompilerWarnings)
-include(generate_windows_rc_file)
 include(build_lua)
-include(CTest)
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_sources(${PROJECT_NAME} PRIVATE src/wall_cache_library.cpp
@@ -16,7 +13,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_DEBUG "-Wl,-v")
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_WHAT_YOU_USE TRUE)
   set(Boost_INCLUDE_DIR "/usr/local/include/boost-1_73")
-
+  set(Boost_USE_STATIC_LIBS ON)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(Boost_INCLUDE_DIR "C:/boost/include/boost-1_73")
   target_sources(${PROJECT_NAME} PRIVATE src/platform/platform_win32.cpp)
@@ -54,12 +51,12 @@ if(NOT MSVC)
   endif()
 endif()
 set_project_warnings(${PROJECT_NAME})
-# Change To Find Boost Automatically on diffrent platforms
+
 add_definitions(-DBOOST_ALL_NO_LIB)
-set(Boost_DEBUG ON)
+set(Boost_DEBUG OFF)
 set(Boost_NO_BOOST_CMAKE ON)
-set(Boost_USE_STATIC_LIBS ON)
 set(Boost_ARCHITECTURE -x64)
+
 find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
 
 # find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
@@ -81,4 +78,4 @@ endif()
 target_link_libraries(
   ${PROJECT_NAME}
   PRIVATE Boost::container spdlog::spdlog_header_only range-v3::range-v3
-          Boost::program_options fmt::fmt-header-only)
+          Boost::program_options fmt::fmt-header-only sol2::sol2)

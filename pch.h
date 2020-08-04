@@ -37,3 +37,4 @@
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/vector.hpp>
 #include <fmt/format.h>
+#include <sol/sol.hpp>
