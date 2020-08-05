@@ -1,6 +1,6 @@
 #include "wall_app.h"
 
-wallchanger::application::application(std::span<char *> args) {
+wall_changer::application::application(std::span<char *> args) {
   ranges::for_each(m_group_name, [&](auto &data) {
     m_group_vec.emplace_back(data, po::options_description(data));
   });
@@ -22,7 +22,7 @@ wallchanger::application::application(std::span<char *> args) {
   po::notify(m_option_map);
 }
 
-int wallchanger::application::run() {
+int wall_changer::application::run() {
   using namespace std::literals;
   if (m_option_map.count("help") != 0U) {
     fmt::print("\nusage: wallchanger [command] [option]\n\n"sv);

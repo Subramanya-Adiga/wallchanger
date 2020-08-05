@@ -40,7 +40,7 @@ macro(build_lua LUA_PATH TARGET)
 
   target_compile_definitions(lua
                              PRIVATE -DLUA_USE_LINUX #[=[-DLUA_USE_READLINE]=])
-  target_include_directories(lua INTERFACE "${LUA_PATH}/.")
+  target_include_directories(lua INTERFACE "${LUA_PATH}/")
   if(NOT MSVC)
     target_compile_options(
       lua
@@ -71,5 +71,4 @@ macro(build_lua LUA_PATH TARGET)
   endif()
   #[=[find_library(READLINE_LIBRARY NAMES readline PATH /usr/lib /usr/local/lib
                                       /opt/local/lib)]=]
-  target_link_libraries(${TARGET} PRIVATE lua::lua_static)
 endmacro()

@@ -4,7 +4,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
 include(build_lua)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE src/wall_cache_library.cpp
                                        src/wall_background.cpp src/wall_app.cpp)
 
@@ -19,7 +19,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_sources(${PROJECT_NAME} PRIVATE src/platform/platform_win32.cpp)
 endif()
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC pch.h)
+target_precompile_headers(${PROJECT_NAME} PRIVATE pch.h)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/range-v3")
@@ -35,47 +35,65 @@ set(Boost_ARCHITECTURE -x64)
 
 find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
 
+if(NOT MSVC)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(${PROJECT_NAME} INTERFACE -v -g -O0
+                                                     -fno-omit-frame-pointer)
+  else()
+    target_compile_options(${PROJECT_NAME} INTERFACE -O2)
+  endif()
+endif()
+set_project_warnings(${PROJECT_NAME})
+
+function(set_standerd_flag TARGET)
+  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    target_compile_features(${TARGET} PRIVATE cxx_std_20)
+    set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS OFF)
+  else()
+    target_compile_features(${TARGET} PRIVATE cxx_std_17)
+    set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS ON)
+  endif()
+endfunction()
+
+set_standerd_flag(${PROJECT_NAME})
+# find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
+# NO_DEFAULT_PATH)
+
+function(set_link_flags TARGET)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT "Clang-CL")
+    target_compile_options(${TARGET} PRIVATE -stdlib=libc++ -flto=thin)
+    set_target_properties(
+      ${TARGET}
+      PROPERTIES
+        LINK_FLAGS
+        "-fuse-ld=lld -stdlib=libc++ -Wl,--verbose -Wl,--rpath=/usr/local/lib")
+    target_link_libraries(${TARGET} PRIVATE c++abi c++)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${TARGET} PRIVATE -flto)
+    set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "-fuse-ld=gold")
+  endif()
+endfunction()
+
+set_link_flags(${PROJECT_NAME})
+
+target_link_libraries(
+  ${PROJECT_NAME}
+  PUBLIC Boost::container
+         spdlog::spdlog_header_only
+         range-v3::range-v3
+         Boost::program_options
+         fmt::fmt-header-only
+         lua::lua_static
+         sol2::sol2)
+
+add_executable(changer_app main.cpp)
+set_standerd_flag(changer_app)
+set_link_flags(changer_app)
+target_precompile_headers(changer_app PRIVATE pch.h)
+target_link_libraries(changer_app PRIVATE WallChanger)
+
 if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
   include(Catch)
   add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
 endif()
-
-if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-  target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
-else()
-  target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-  set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS ON)
-endif()
-
-if(NOT MSVC)
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(${PROJECT_NAME} PRIVATE -v -g -O0
-                                                   -fno-omit-frame-pointer)
-  else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -O2)
-  endif()
-endif()
-set_project_warnings(${PROJECT_NAME})
-
-# find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
-# NO_DEFAULT_PATH)
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT "Clang-CL")
-  target_compile_options(${PROJECT_NAME} PRIVATE -stdlib=libc++ -flto=thin)
-  set_target_properties(
-    ${PROJECT_NAME}
-    PROPERTIES
-      LINK_FLAGS
-      "-fuse-ld=lld -stdlib=libc++ -Wl,--verbose -Wl,--rpath=/usr/local/lib")
-  target_link_libraries(${PROJECT_NAME} PRIVATE c++abi c++)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  target_compile_options(${PROJECT_NAME} PRIVATE -flto)
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-fuse-ld=gold")
-endif()
-
-target_link_libraries(
-  ${PROJECT_NAME}
-  PRIVATE Boost::container spdlog::spdlog_header_only range-v3::range-v3
-          Boost::program_options fmt::fmt-header-only sol2::sol2)

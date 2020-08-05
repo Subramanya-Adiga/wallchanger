@@ -1,4 +1,4 @@
 #pragma once
 #include "../pch.h"
 
-namespace wallchanger {} // namespace wallchanger
+namespace wall_changer {} // namespace wall_changer

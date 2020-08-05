@@ -4,14 +4,14 @@
 
 namespace wall_changer {
 
-enum class cache_state { unused = 0, used = 1, favorate = 11 };
+enum class cache_state_e { unused = 0, used = 1, favorate = 11 };
 
 template <typename Key, typename Value> struct cache {
   Key cache_key;
   Value cache_value;
-  cache_state state;
-  cache(Key cache_key, Value cache_value, cache_state state)
-      : cache_key(cache_key), cache_value(cache_value), state(state) {}
+  cache_state_e cache_state;
+  cache(Key cache_key1, Value cache_value1, cache_state_e state1)
+      : cache_key(cache_key1), cache_value(cache_value1), cache_state(state1) {}
 };
 
 template <typename Key, typename Value> class wall_cache {
