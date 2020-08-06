@@ -6,7 +6,7 @@ include(build_lua)
 
 add_library(changer STATIC)
 target_sources(changer PRIVATE src/wall_cache_library.cpp
-                                       src/wall_background.cpp src/wall_app.cpp)
+                               src/wall_background.cpp src/wall_app.cpp)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(changer PRIVATE src/platform/platform_linux.cpp)
@@ -14,8 +14,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set_target_properties(changer PROPERTIES LINK_WHAT_YOU_USE TRUE)
   set(Boost_INCLUDE_DIR "/usr/local/include/boost-1_73")
   set(Boost_USE_STATIC_LIBS ON)
+  set(Boost_ARCHITECTURE -x64)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  set(Boost_INCLUDE_DIR "C:/boost/include/boost-1_73")
   target_sources(changer PRIVATE src/platform/platform_win32.cpp)
 endif()
 
@@ -31,14 +31,11 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/catch2")
 add_definitions(-DBOOST_ALL_NO_LIB)
 set(Boost_DEBUG OFF)
 set(Boost_NO_BOOST_CMAKE ON)
-set(Boost_ARCHITECTURE -x64)
-
 find_package(Boost 1.71 REQUIRED COMPONENTS container program_options)
 
 if(NOT MSVC)
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(changer INTERFACE -v -g -O0
-                                                     -fno-omit-frame-pointer)
+    target_compile_options(changer INTERFACE -v -g -O0 -fno-omit-frame-pointer)
   else()
     target_compile_options(changer INTERFACE -O2)
   endif()
@@ -78,13 +75,8 @@ set_link_flags(changer)
 
 target_link_libraries(
   changer
-  PUBLIC Boost::container
-         spdlog::spdlog_header_only
-         range-v3::range-v3
-         Boost::program_options
-         fmt::fmt-header-only
-         lua::lua_static
-         sol2::sol2)
+  PUBLIC spdlog::spdlog_header_only range-v3::range-v3 Boost::program_options
+         fmt::fmt-header-only lua::lua_static sol2::sol2)
 
 add_executable(changer_app main.cpp)
 set_standerd_flag(changer_app)

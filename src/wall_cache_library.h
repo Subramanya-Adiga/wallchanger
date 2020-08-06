@@ -7,11 +7,7 @@ namespace wall_changer {
 class wall_cache_lib {
   using cache_type = wall_cache<int, std::string>;
   using cache_store = std::pair<std::string, cache_type>;
-  using growth_50_option_t =
-      boost::container::small_vector_options<boost::container::growth_factor<
-          boost::container::growth_factor_50>>::type;
-  using small_cache =
-      boost::container::small_vector<cache_store, 4, void, growth_50_option_t>;
+  using small_cache = std::vector<cache_store>;
 
 public:
   using value_type = cache_type;

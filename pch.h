@@ -18,6 +18,7 @@
 #include <vector>
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <Shobjidl.h>
 #include <windows.h>
 #elif __linux__
@@ -29,12 +30,5 @@
 
 #include "src/log.h"
 #include "src/scoped_timer.h"
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/container/small_vector.hpp>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/vector.hpp>
 #include <fmt/format.h>
 #include <sol/sol.hpp>

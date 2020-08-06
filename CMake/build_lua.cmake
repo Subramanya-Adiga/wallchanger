@@ -38,10 +38,10 @@ macro(build_lua LUA_PATH TARGET)
             ${LUA_PATH}/lcorolib.c
             ${LUA_PATH}/linit.c)
 
-  target_compile_definitions(lua
-                             PRIVATE -DLUA_USE_LINUX #[=[-DLUA_USE_READLINE]=])
   target_include_directories(lua INTERFACE "${LUA_PATH}/")
   if(NOT MSVC)
+    target_compile_definitions(
+      lua PRIVATE -DLUA_USE_LINUX #[=[-DLUA_USE_READLINE]=])
     target_compile_options(
       lua
       PRIVATE -Wall
