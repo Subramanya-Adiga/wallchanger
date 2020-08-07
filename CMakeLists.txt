@@ -3,14 +3,32 @@ project(WallChanger LANGUAGES CXX C)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
 include(build_lua)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(changer STATIC)
+add_library(project_options INTERFACE)
+target_compile_features(project_options INTERFACE cxx_std_20)
+target_compile_options(project_options INTERFACE -march=znver2)
+target_precompile_headers(
+  project_options
+  INTERFACE
+  <vector>
+  <string>
+  <map>
+  <utility>
+  <string_view>
+  <array>
+  <algorithm>
+  <fmt/format.h>
+  <spdlog/spdlog.h>)
+
+add_library(project_dependency INTERFACE)
+
+# Main Executable Project
+add_executable(changer main.cpp)
 target_sources(changer PRIVATE src/wall_cache_library.cpp
                                src/wall_background.cpp src/wall_app.cpp)
-
-set_standerd_flag(changer)
+# set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
 set_project_warnings(changer)
-target_precompile_headers(changer PRIVATE pch.h)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(changer PRIVATE src/platform/platform_linux.cpp)
@@ -21,9 +39,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(Boost_ARCHITECTURE -x64)
 
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(changer PUBLIC -v -g -O0 -march=znver2)
+    target_compile_options(changer PUBLIC -v -g -O0)
   else()
-    target_compile_options(changer PUBLIC -O2 -march=znver2)
+    target_compile_options(changer PUBLIC -O2)
   endif()
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -55,7 +73,7 @@ function(set_link_flags TARGET)
         "-fuse-ld=lld -stdlib=libc++ -Wl,--verbose -Wl,--rpath=/usr/local/lib")
     target_link_libraries(${TARGET} PRIVATE c++abi c++)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    # target_compile_options(${TARGET} PRIVATE -flto)
+    target_compile_options(${TARGET} PRIVATE -flto)
     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "-fuse-ld=gold")
   endif()
 endfunction()
@@ -63,15 +81,12 @@ endfunction()
 set_link_flags(changer)
 
 target_link_libraries(
-  changer
-  PUBLIC spdlog::spdlog_header_only range-v3::range-v3 Boost::program_options
-         fmt::fmt-header-only lua::lua_static sol2::sol2)
+  project_dependency
+  INTERFACE spdlog::spdlog_header_only range-v3::range-v3
+            Boost::program_options fmt::fmt-header-only lua::lua_static
+            sol2::sol2)
 
-add_executable(changer_app main.cpp)
-set_standerd_flag(changer_app)
-set_link_flags(changer_app)
-target_precompile_headers(changer_app PRIVATE pch.h)
-target_link_libraries(changer_app PRIVATE changer)
+target_link_libraries(changer PRIVATE project_options project_dependency)
 
 if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
