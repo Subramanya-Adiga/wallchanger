@@ -1,5 +1,6 @@
 #pragma once
 #include "../pch.h"
+#include <compare>
 #include <concepts>
 
 namespace wall_changer {
@@ -32,7 +33,7 @@ public:
   wall_cache() = default;
   explicit wall_cache(size_type size) {
     size_type size_ = 0;
-    size_ = (size == 0) ? (std::numeric_limits<unsigned char>::max)() : size;
+    size_ = (size == 0) ? std::numeric_limits<char>::max() : size;
     cache_vec.reserve(size_);
   }
   void reserve(size_type size) { cache_vec.reserve(size); }
@@ -68,15 +69,18 @@ public:
   }
   void shrink_to_fit() { cache_vec.shrink_to_fit(); }
 
-  [[nodiscard]] size_type get_size() const noexcept { return cache_vec.size(); }
-  [[nodiscard]] size_type max_size() const noexcept {
+  [[nodiscard]] size_type size() const noexcept { return cache_vec.size(); }
+  [[nodiscard]] size_type capacity() const noexcept {
     return cache_vec.capacity();
   }
-  [[nodiscard]] bool is_empty() const noexcept { return cache_vec.empty(); }
+  [[nodiscard]] bool empty() const noexcept { return cache_vec.empty(); }
   [[nodiscard]] bool modified() const noexcept { return modified_; }
   [[nodiscard]] bool exists(key_type key) const noexcept {
-    auto rng_it = ranges::find(cache_vec, key, &value_type::first);
-    return (rng_it->first == key);
+    if (!empty()) {
+      auto rng_it = ranges::find(cache_vec, key, &value_type::first);
+      return (rng_it->first == key);
+    }
+    return false;
   }
 
   [[nodiscard]] mapped_type get(key_type key) const noexcept {
@@ -117,9 +121,7 @@ public:
   }
 
   bool operator!() const noexcept { return this->cache_vec.empty(); }
-  bool operator==(wall_cache rhs) const noexcept {
-    return (this->cache_vec == rhs.cache_vec);
-  }
+  auto operator<=>(const wall_cache &) const = default;
 
 private:
   bool modified_ = false;
