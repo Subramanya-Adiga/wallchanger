@@ -1,5 +1,7 @@
 #pragma once
-
+#include "log.h"
+#include <chrono>
+#include <string_view>
 namespace debug::timer {
 template <typename to_dur> class scoped_timer {
   using timer = std::chrono::time_point<std::chrono::steady_clock>;
