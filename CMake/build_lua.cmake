@@ -39,9 +39,12 @@ macro(build_lua LUA_PATH TARGET)
             ${LUA_PATH}/linit.c)
 
   target_include_directories(lua INTERFACE "${LUA_PATH}/")
-  if(NOT MSVC)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(
       lua PRIVATE -DLUA_USE_LINUX #[=[-DLUA_USE_READLINE]=])
+    target_link_libraries(lua PRIVATE #[=[${READLINE_LIBRARY}]=] dl)
+  endif()
+  if(NOT MSVC)
     target_compile_options(
       lua
       PRIVATE -Wall
@@ -67,7 +70,6 @@ macro(build_lua LUA_PATH TARGET)
               -fno-stack-protector
               -fno-common
               -march=native)
-    target_link_libraries(lua PRIVATE #[=[${READLINE_LIBRARY}]=] dl)
   endif()
   #[=[find_library(READLINE_LIBRARY NAMES readline PATH /usr/lib /usr/local/lib
                                       /opt/local/lib)]=]

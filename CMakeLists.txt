@@ -7,7 +7,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(project_options INTERFACE)
 target_compile_features(project_options INTERFACE cxx_std_20)
-target_compile_options(project_options INTERFACE -march=znver2)
+target_compile_options(
+  project_options
+  INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/TP /arch:AVX2>
+            $<$<COMPILE_LANG_AND_ID:CXX,GCC,Clang>:-march=znver2>)
 target_precompile_headers(
   project_options
   INTERFACE
@@ -18,6 +21,8 @@ target_precompile_headers(
   <string_view>
   <array>
   <algorithm>
+  <memory>
+  <range/v3/all.hpp>
   <fmt/format.h>
   <spdlog/spdlog.h>)
 
@@ -26,7 +31,7 @@ add_library(project_dependency INTERFACE)
 # Main Executable Project
 add_executable(changer main.cpp)
 target_sources(changer PRIVATE src/wall_cache_library.cpp
-                               src/wall_background.cpp src/wall_app.cpp)
+               src/wall_background.cpp src/wall_app.cpp)
 # set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
 set_project_warnings(changer)
 
@@ -46,6 +51,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_sources(changer PRIVATE src/platform/platform_win32.cpp)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release" AND MSVC)
+    target_compile_options(changer PUBLIC /GL)
+    set_target_properties(changer PROPERTIES LINK_FLAGS "/LTCG")
+  endif()
 endif()
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
@@ -64,7 +73,7 @@ find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 # NO_DEFAULT_PATH)
 
 function(set_link_flags TARGET)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT "Clang-CL")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(${TARGET} PRIVATE -stdlib=libc++ -flto=thin)
     set_target_properties(
       ${TARGET}
@@ -78,18 +87,17 @@ function(set_link_flags TARGET)
   endif()
 endfunction()
 
-set_link_flags(changer)
-
 target_link_libraries(
   project_dependency
   INTERFACE spdlog::spdlog_header_only range-v3::range-v3
             Boost::program_options fmt::fmt-header-only lua::lua_static
             sol2::sol2)
-
+set_link_flags(changer)
 target_link_libraries(changer PRIVATE project_options project_dependency)
 
 if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
   include(Catch)
   add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
+
 endif()
