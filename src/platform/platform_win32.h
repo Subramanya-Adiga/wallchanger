@@ -1,6 +1,6 @@
 #pragma once
 #include "../../pch.h"
-
+#include <Shobjidl.h>
 namespace wall_changer::platform::win32 {
 
 struct error_handler_win32 {
@@ -17,14 +17,14 @@ struct error_handler_win32 {
     auto id = GetLastError();
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                       FORMAT_MESSAGE_IGNORE_INSERTS,
-                  NULL, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                  (LPTSTR)&m_msg_buf, 0, NULL);
+                  nullptr, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                  reinterpret_cast<LPTSTR>(&m_msg_buf), 0, nullptr);
     return fmt::format("{} failed with error {}: {}", func_name, id,
-                       (LPTSTR)m_msg_buf);
+                       static_cast<LPTSTR>(m_msg_buf));
   }
 
 private:
-  LPVOID m_msg_buf = NULL;
+  LPVOID m_msg_buf = nullptr;
 };
 
 class background {
