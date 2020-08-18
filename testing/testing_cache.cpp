@@ -1,36 +1,65 @@
 #include "../pch.h"
 #include "../src/wall_cache.h"
 #define CATCH_CONFIG_MAIN
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 
-unsigned int Factorial(unsigned int number) {
-  return number <= 1 ? number : Factorial(number - 1) * number;
+TEST_CASE("Cache Construction", "[cache construct]") {
+  using namespace std::literals;
+  wall_changer::wall_cache<int, std::string> cache(0);
+  REQUIRE(cache.capacity() == std::numeric_limits<char>::max());
+
+  wall_changer::wall_cache<int, std::string> cache2(5);
+  cache2.insert(0, "hello"s);
+  REQUIRE(cache2.get(0) == "hello"s);
+  REQUIRE(cache2.capacity() == 5);
+
+  wall_changer::wall_cache<int, std::string> cache3(cache2);
+  REQUIRE(cache3.get(0) == "hello"s);
+  REQUIRE(cache3 == cache2);
+
+  wall_changer::wall_cache<int, std::string> cache4(std::move(cache2));
+  REQUIRE(cache4.capacity() == 5);
+  REQUIRE(cache4.get(0) == "hello"s);
+  REQUIRE(cache2 != cache4);
+  REQUIRE(cache2.empty() == true);
 }
 
-TEST_CASE("Factorials are computed", "[factorial]") {
-  REQUIRE(Factorial(1) == 1);
-  REQUIRE(Factorial(2) == 2);
-  REQUIRE(Factorial(3) == 6);
-  REQUIRE(Factorial(10) == 3628800);
-}
+TEST_CASE("Cache Functionality Tests", "[cache function]") {
+  using namespace std::literals;
+  wall_changer::wall_cache<int, std::string> cache(5);
+  REQUIRE(cache.capacity() == 5);
 
-std::uint64_t Fibonacci(std::uint64_t number) {
-  return number < 2 ? 1 : Fibonacci(number - 1) + Fibonacci(number - 2);
-}
+  SECTION("Insection") {
+    cache.insert(0, "hello world"s);
+    REQUIRE(cache.get(0) == "hello world"s);
+    REQUIRE_FALSE(cache.empty());
+    REQUIRE(cache.exists(0));
+  }
+  SECTION("Replace") {
+    cache.insert(0, "hello world"s);
+    cache.replace(0, "hello world!"s);
+    CHECK(cache.get(0) == "hello world!");
+    REQUIRE(cache.empty() == false);
+    REQUIRE(cache.modified());
+  }
+  SECTION("Erase") {
+    cache.insert(0, "hello world"s);
+    REQUIRE_FALSE(cache.empty());
+    cache.erase(0);
+    REQUIRE(cache.empty() == true);
+    REQUIRE(cache.modified() == true);
+  }
+  SECTION("State Change") {
+    cache.insert(0, "hello world"s);
+    cache.insert(1, "hello world"s);
+    cache.insert(2, "hello world"s);
 
-TEST_CASE("Fibonacci") {
-  CHECK(Fibonacci(0) == 1);
-  // some more asserts..
-  CHECK(Fibonacci(5) == 8);
-  // some more asserts..
+    cache.set_state(0, cache.state::s_unused);
+    cache.set_state(1, cache.state::s_null);
+    cache.set_state(2, cache.state::s_used);
 
-  // now let's benchmark:
-  BENCHMARK("Fibonacci 20") { return Fibonacci(20); };
-
-  BENCHMARK("Fibonacci 25") { return Fibonacci(25); };
-
-  BENCHMARK("Fibonacci 30") { return Fibonacci(30); };
-
-  BENCHMARK("Fibonacci 35") { return Fibonacci(35); };
+    REQUIRE(cache.get_state(0) == cache.state::s_unused);
+    REQUIRE(cache.get_state(1) == cache.state::s_null);
+    REQUIRE(cache.get_state(2) == cache.state::s_used);
+  }
 }
