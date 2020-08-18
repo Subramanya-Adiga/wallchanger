@@ -10,7 +10,7 @@ target_compile_features(project_options INTERFACE cxx_std_20)
 target_compile_options(
   project_options
   INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/TP /arch:AVX2>
-            $<$<COMPILE_LANG_AND_ID:CXX,GCC,Clang>:-march=znver2>)
+            $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-march=znver2>)
 target_precompile_headers(
   project_options
   INTERFACE
@@ -31,7 +31,7 @@ add_library(project_dependency INTERFACE)
 # Main Executable Project
 add_executable(changer main.cpp)
 target_sources(changer PRIVATE src/wall_cache_library.cpp
-               src/wall_background.cpp src/wall_app.cpp)
+                               src/wall_background.cpp src/wall_app.cpp)
 # set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
 set_project_warnings(changer)
 
@@ -99,5 +99,6 @@ if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
   include(Catch)
   add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
+  add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
 
 endif()
