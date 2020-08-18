@@ -1,14 +1,14 @@
 #include "wall_cache_library.h"
 
-wall_changer::wall_cache_lib::value_type
-wall_changer::wall_cache_lib::get(std::string_view name) const noexcept {
+wall_changer::wall_cache_lib::cache_lib_type
+wall_changer::wall_cache_lib::get_cache(std::string_view name) const noexcept {
   auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
   return rng_it->second;
 }
 
-void wall_changer::wall_cache_lib::erase(std::string_view name) noexcept {
-  auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-  if (rng_it->first == name) {
+void wall_changer::wall_cache_lib::remove(std::string_view name) noexcept {
+  if (exists(name)) {
+    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
     rng_it->second.clear();
     m_clear_empty();
   }
@@ -16,8 +16,11 @@ void wall_changer::wall_cache_lib::erase(std::string_view name) noexcept {
 
 bool wall_changer::wall_cache_lib::exists(
     std::string_view name) const noexcept {
-  auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-  return (rng_it->first == name);
+  if (!empty()) {
+    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
+    return (rng_it->first == name);
+  }
+  return false;
 }
 
 bool wall_changer::wall_cache_lib::modified() const noexcept {
