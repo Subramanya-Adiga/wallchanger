@@ -5,19 +5,19 @@
 
 TEST_CASE("Cache Construction", "[cache construct]") {
   using namespace std::literals;
-  wall_changer::wall_cache<int, std::string> cache(0);
+  wallchanger::cache<int, std::string> cache(0);
   REQUIRE(cache.capacity() == std::numeric_limits<char>::max());
 
-  wall_changer::wall_cache<int, std::string> cache2(5);
+  wallchanger::cache<int, std::string> cache2(5);
   cache2.insert(0, "hello"s);
   REQUIRE(cache2.get(0) == "hello"s);
   REQUIRE(cache2.capacity() == 5);
 
-  wall_changer::wall_cache<int, std::string> cache3(cache2);
+  wallchanger::cache<int, std::string> cache3(cache2);
   REQUIRE(cache3.get(0) == "hello"s);
   REQUIRE(cache3 == cache2);
 
-  wall_changer::wall_cache<int, std::string> cache4(std::move(cache2));
+  wallchanger::cache<int, std::string> cache4(std::move(cache2));
   REQUIRE(cache4.capacity() == 5);
   REQUIRE(cache4.get(0) == "hello"s);
   REQUIRE(cache2 != cache4);
@@ -26,7 +26,7 @@ TEST_CASE("Cache Construction", "[cache construct]") {
 
 TEST_CASE("Cache Functionality Tests", "[cache function]") {
   using namespace std::literals;
-  wall_changer::wall_cache<int, std::string> cache(5);
+  wallchanger::cache<int, std::string> cache(5);
   REQUIRE(cache.capacity() == 5);
 
   SECTION("Insection") {

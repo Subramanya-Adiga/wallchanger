@@ -1,7 +1,7 @@
 #pragma once
 #include "../../pch.h"
 #include <Shobjidl.h>
-namespace wall_changer::platform::win32 {
+namespace wallchanger::platform::win32 {
 
 struct error_handler_win32 {
   error_handler_win32() = default;
@@ -39,4 +39,4 @@ public:
   bool set_wallpaper(std::wstring_view filename, int position) const;
   bool set_color(DWORD color) const;
 };
-} // namespace wall_changer::platform::win32
+} // namespace wallchanger::platform::win32

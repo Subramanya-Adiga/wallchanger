@@ -1,7 +1,7 @@
 #pragma once
 #include "../../pch.h"
 
-namespace wall_changer::platform::linux {
+namespace wallchanger::platform::linux {
 
 class background {
   bool m_initialized = false;
@@ -12,4 +12,4 @@ public:
                                    std::string_view position) const;
   [[nodiscard]] bool set_color(std::string_view color) const;
 };
-} // namespace wall_changer::platform::linux
+} // namespace wallchanger::platform::linux

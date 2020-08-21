@@ -3,15 +3,15 @@
 #include "wall_cache.h"
 #include <compare>
 
-namespace wall_changer {
+namespace wallchanger {
 
-class wall_cache_lib {
-  using cache_type = wall_cache<int, std::string>;
+class cache_lib {
+  using cache_type = cache<int, std::string>;
   using cache_store = std::pair<std::string, cache_type>;
 
 public:
   using cache_lib_type = cache_type;
-  wall_cache_lib() = default;
+  cache_lib() = default;
 
   template <typename T>
   void insert(const std::string &name, T &&value) noexcept {
@@ -42,7 +42,7 @@ public:
     return rng_it->second;
   }
 
-  auto operator<=>(const wall_cache_lib &) const = default;
+  auto operator<=>(const cache_lib &) const = default;
 
 private:
   std::vector<cache_store> m_cache_vec;
@@ -52,4 +52,4 @@ private:
   }
 };
 
-} // namespace wall_changer
+} // namespace wallchanger

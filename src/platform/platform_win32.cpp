@@ -1,6 +1,6 @@
 #include "platform_win32.h"
 
-wall_changer::platform::win32::background::background() {
+wallchanger::platform::win32::background::background() {
   if (HRESULT init = CoInitialize(NULL); init == S_OK) {
     if (HRESULT instance_create =
             CoCreateInstance(__uuidof(DesktopWallpaper), NULL, CLSCTX_ALL,
@@ -14,12 +14,12 @@ wall_changer::platform::win32::background::background() {
   // log
 }
 
-wall_changer::platform::win32::background::~background() {
+wallchanger::platform::win32::background::~background() {
   if (m_initialized)
     CoUninitialize();
 }
 
-bool wall_changer::platform::win32::background::set_wallpaper(
+bool wallchanger::platform::win32::background::set_wallpaper(
     std::wstring_view filename, int position) const {
   HRESULT result = S_FALSE;
   if (m_valid_instance) {
@@ -35,7 +35,7 @@ bool wall_changer::platform::win32::background::set_wallpaper(
   return (result == S_OK);
 }
 
-bool wall_changer::platform::win32::background::set_color(DWORD color) const {
+bool wallchanger::platform::win32::background::set_color(DWORD color) const {
   HRESULT result = S_FALSE;
   if (m_valid_instance) {
     result = m_wallpaper->SetBackgroundColor(color);

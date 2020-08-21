@@ -2,6 +2,6 @@
 #include <iostream>
 
 int main(int argc, char *argv[]) {
-  wall_changer::application app({argv, static_cast<unsigned long>(argc)});
+  wallchanger::application app({argv, static_cast<unsigned long>(argc)});
   return app.run();
 }

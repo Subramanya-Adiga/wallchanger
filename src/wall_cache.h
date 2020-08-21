@@ -3,19 +3,19 @@
 #include <compare>
 #include <concepts>
 
-namespace wall_changer {
+namespace wallchanger {
 
 enum class cache_state_e { unused = 0, used = 1, favorate = 11 };
 
-template <typename Key, typename Value> struct cache {
+template <typename Key, typename Value> struct cache_type_struct {
   Key cache_key;
   Value cache_value;
   cache_state_e cache_state;
-  cache(Key cache_key1, Value cache_value1, cache_state_e state1)
+  cache_type_struct(Key cache_key1, Value cache_value1, cache_state_e state1)
       : cache_key(cache_key1), cache_value(cache_value1), cache_state(state1) {}
 };
 
-template <typename Key, typename Value> class wall_cache {
+template <typename Key, typename Value> class cache {
   using cache_t = typename std::pair<Key, std::pair<Value, int>>;
 
 public:
@@ -30,8 +30,8 @@ public:
 
   enum state { s_null = 0, s_unused = 1, s_used = 2 };
 
-  wall_cache() = default;
-  explicit wall_cache(size_type size) {
+  cache() = default;
+  explicit cache(size_type size) {
     size_type size_ = 0;
     size_ = (size == 0) ? std::numeric_limits<char>::max() : size;
     cache_vec.reserve(size_);
@@ -121,7 +121,7 @@ public:
   }
 
   bool operator!() const noexcept { return this->cache_vec.empty(); }
-  auto operator<=>(const wall_cache &) const = default;
+  auto operator<=>(const cache &) const = default;
 
 private:
   bool modified_ = false;
@@ -132,4 +132,4 @@ private:
   }
 };
 
-} // namespace wall_changer
+} // namespace wallchanger

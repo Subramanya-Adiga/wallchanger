@@ -7,10 +7,10 @@
 TEST_CASE("Library Construction", "[cahce lib construct]") {
   using namespace std::literals;
   // test cache construction
-  wall_changer::wall_cache_lib::cache_lib_type cache(0);
+  wallchanger::cache_lib::cache_lib_type cache(0);
   cache.insert(0, "hello"s);
 
-  wall_changer::wall_cache_lib lib1;
+  wallchanger::cache_lib lib1;
   lib1.insert("cache1", cache);
   REQUIRE(lib1.cache_count() == 1);
 

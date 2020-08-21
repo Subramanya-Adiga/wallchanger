@@ -3,7 +3,7 @@
 #include <boost/program_options.hpp>
 #include <span>
 
-namespace wall_changer {
+namespace wallchanger {
 namespace po = boost::program_options;
 
 using commandgroup = std::pair<std::string, po::options_description>;
@@ -37,4 +37,4 @@ private:
       {m_group_name[0], m_general_options}};
   std::vector<commandgroup> m_group_vec;
 };
-} // namespace wall_changer
+} // namespace wallchanger
