@@ -30,8 +30,9 @@ add_library(project_dependency INTERFACE)
 
 # Main Executable Project
 add_executable(changer main.cpp)
-target_sources(changer PRIVATE src/wall_cache_library.cpp
-                               src/wall_background.cpp src/wall_app.cpp)
+target_sources(
+  changer PRIVATE src/wall_cache_library.cpp src/wall_background.cpp
+                  src/wall_app.cpp src/wall_manager.cpp)
 # set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
 set_project_warnings(changer)
 
