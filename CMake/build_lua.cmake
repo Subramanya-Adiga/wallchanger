@@ -1,4 +1,4 @@
-macro(build_lua LUA_PATH TARGET)
+macro(build_lua LUA_PATH)
   add_library(lua STATIC ${SOURCES})
   add_library(lua::lua_static ALIAS lua)
 

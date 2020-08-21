@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 project(WallChanger LANGUAGES CXX C)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
@@ -7,10 +7,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(project_options INTERFACE)
 target_compile_features(project_options INTERFACE cxx_std_20)
-target_compile_options(
-  project_options
-  INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/TP /arch:AVX2>
-            $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang>:-march=znver2>)
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+   OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+   AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
+  target_compile_options(project_options INTERFACE -march=znver2)
+elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
+                                                   STREQUAL "MSVC"))
+  target_compile_options(project_options INTERFACE /arch:AVX2)
+endif()
+
 target_precompile_headers(
   project_options
   INTERFACE
@@ -52,7 +57,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_sources(changer PRIVATE src/platform/platform_win32.cpp)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release" AND MSVC)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release" AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL
+                                              "MSVC"))
     target_compile_options(changer PUBLIC /GL)
     set_target_properties(changer PROPERTIES LINK_FLAGS "/LTCG")
   endif()
@@ -61,7 +67,7 @@ endif()
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/range-v3")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/fmtlib")
-build_lua("${CMAKE_SOURCE_DIR}/vendor/lua" changer)
+build_lua("${CMAKE_SOURCE_DIR}/vendor/lua")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/sol2")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/catch2")
 
@@ -74,7 +80,8 @@ find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
 # NO_DEFAULT_PATH)
 
 function(set_link_flags TARGET)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_SIMULATE_ID
+                                                 STREQUAL "MSVC"))
     target_compile_options(${TARGET} PRIVATE -stdlib=libc++ -flto=thin)
     set_target_properties(
       ${TARGET}
@@ -85,6 +92,9 @@ function(set_link_flags TARGET)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${TARGET} PRIVATE -flto)
     set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "-fuse-ld=gold")
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID
+                                                    STREQUAL "MSVC")
+    target_compile_options(${TARGET} PRIVATE -flto=thin)
   endif()
 endfunction()
 
