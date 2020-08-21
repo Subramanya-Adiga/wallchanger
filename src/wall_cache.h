@@ -34,50 +34,50 @@ public:
   explicit cache(size_type size) {
     size_type size_ = 0;
     size_ = (size == 0) ? std::numeric_limits<char>::max() : size;
-    cache_vec.reserve(size_);
+    m_cache_vec.reserve(size_);
   }
-  void reserve(size_type size) { cache_vec.reserve(size); }
+  void reserve(size_type size) { m_cache_vec.reserve(size); }
 
   template <typename val>
   void insert(key_type key, val &&value) requires std::same_as<val, Value> {
     if (!exists(key)) {
-      cache_vec.emplace_back(
+      m_cache_vec.emplace_back(
           std::move(key), std::make_pair(std::forward<val>(value), s_unused));
-      modified_ = true;
+      m_modified = true;
     }
   }
 
   template <typename val>
   void replace(key_type key, val &&value) noexcept
       requires std::same_as<val, Value> {
-    auto it_rng = ranges::find(cache_vec, key, &value_type::first);
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
     if (it_rng->first == key) {
       it_rng->second.first = std::forward<val>(value);
       it_rng->second.second = s_unused;
-      modified_ = true;
+      m_modified = true;
     }
   }
 
   void clear() noexcept {
-    cache_vec.clear();
-    modified_ = true;
+    m_cache_vec.clear();
+    m_modified = true;
   }
   void erase(key_type key) noexcept {
     ranges::actions::drop_while(
-        cache_vec, [&](auto &type) { return (key == type.first); });
-    modified_ = true;
+        m_cache_vec, [&](auto &type) { return (key == type.first); });
+    m_modified = true;
   }
-  void shrink_to_fit() { cache_vec.shrink_to_fit(); }
+  void shrink_to_fit() { m_cache_vec.shrink_to_fit(); }
 
-  [[nodiscard]] size_type size() const noexcept { return cache_vec.size(); }
+  [[nodiscard]] size_type size() const noexcept { return m_cache_vec.size(); }
   [[nodiscard]] size_type capacity() const noexcept {
-    return cache_vec.capacity();
+    return m_cache_vec.capacity();
   }
-  [[nodiscard]] bool empty() const noexcept { return cache_vec.empty(); }
-  [[nodiscard]] bool modified() const noexcept { return modified_; }
+  [[nodiscard]] bool empty() const noexcept { return m_cache_vec.empty(); }
+  [[nodiscard]] bool modified() const noexcept { return m_modified; }
   [[nodiscard]] bool exists(key_type key) const noexcept {
     if (!empty()) {
-      auto rng_it = ranges::find(cache_vec, key, &value_type::first);
+      auto rng_it = ranges::find(m_cache_vec, key, &value_type::first);
       return (rng_it->first == key);
     }
     return false;
@@ -91,43 +91,43 @@ public:
   mapped_type &operator[](key_type key) const noexcept { return at_(key); }
 
   void set_state(key_type key, state new_state) noexcept {
-    auto it_rng = ranges::find(cache_vec, key, &value_type::first);
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
     if (it_rng->first == key) {
       it_rng->second.second = new_state;
-      modified_ = true;
+      m_modified = true;
     }
   }
   [[nodiscard]] state get_state(key_type key) const noexcept {
-    auto it_rng = ranges::find(cache_vec, key, &value_type::first);
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
     return static_cast<state>(it_rng->second.second);
   }
 
-  reference front() noexcept { return cache_vec.front(); }
-  reference back() noexcept { return cache_vec.back(); }
+  reference front() noexcept { return m_cache_vec.front(); }
+  reference back() noexcept { return m_cache_vec.back(); }
   [[nodiscard]] const_reference front() const noexcept {
-    return cache_vec.front();
+    return m_cache_vec.front();
   }
   [[nodiscard]] const_reference back() const noexcept {
-    return cache_vec.back();
+    return m_cache_vec.back();
   }
 
-  iterator begin() noexcept { return std::begin(cache_vec); }
-  iterator end() noexcept { return std::end(cache_vec); }
+  iterator begin() noexcept { return std::begin(m_cache_vec); }
+  iterator end() noexcept { return std::end(m_cache_vec); }
   [[nodiscard]] const_iterator cbegin() const noexcept {
-    return std::cbegin(cache_vec);
+    return std::cbegin(m_cache_vec);
   }
   [[nodiscard]] const_iterator cend() const noexcept {
-    return std::cend(cache_vec);
+    return std::cend(m_cache_vec);
   }
 
-  bool operator!() const noexcept { return this->cache_vec.empty(); }
+  bool operator!() const noexcept { return this->m_cache_vec.empty(); }
   auto operator<=>(const cache &) const = default;
 
 private:
-  bool modified_ = false;
-  std::vector<value_type> cache_vec;
+  bool m_modified = false;
+  std::vector<value_type> m_cache_vec;
   [[nodiscard]] mapped_type at_(key_type key) const noexcept {
-    auto it_rng = ranges::find(cache_vec, key, &value_type::first);
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
     return it_rng->second.first;
   }
 };
