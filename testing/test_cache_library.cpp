@@ -22,3 +22,40 @@ TEST_CASE("Library Construction", "[cahce lib construct]") {
   REQUIRE(lib3 != lib1);
   REQUIRE(lib1.empty() == true);
 }
+
+TEST_CASE("Library Functionality", "[cache lib function]") {
+  using namespace std::literals;
+  wallchanger::cache_lib::cache_lib_type cache(0);
+  cache.insert(0, "hello"s);
+  cache.insert(1, "world"s);
+  wallchanger::cache_lib::cache_lib_type cache2(0);
+
+  SECTION("insection") {
+    wallchanger::cache_lib lib;
+    lib.insert("cache1", cache);
+    lib.insert("cache2", cache2);
+    REQUIRE(lib.modified() == true);
+    REQUIRE(lib.empty() == false);
+  }
+  SECTION("exists") {
+    wallchanger::cache_lib lib;
+    lib.insert("cache1", cache);
+    lib.insert("cache2", cache2);
+    REQUIRE(lib.exists("cache1") == true);
+    REQUIRE(lib.exists("cache2") == true);
+  }
+  SECTION("get cache") {
+    wallchanger::cache_lib lib;
+    lib.insert("cache1", cache);
+    lib.insert("cache2", cache2);
+    REQUIRE(lib.get_cache("cache2").empty() == true);
+    REQUIRE(lib["cache1"].empty() == false);
+  }
+  SECTION("erase") {
+    wallchanger::cache_lib lib;
+    lib.insert("cache1", cache);
+    lib.insert("cache2", cache2);
+    lib.remove("cache1");
+    REQUIRE(lib.exists("cache1") == false);
+  }
+}
