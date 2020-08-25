@@ -2,6 +2,7 @@
 #include "log.h"
 #include <chrono>
 #include <string_view>
+
 namespace debug::timer {
 template <typename to_dur> class scoped_timer {
   using timer = std::chrono::time_point<std::chrono::steady_clock>;
@@ -28,16 +29,16 @@ public:
 #define TIMER_NAME_NANO(name)                                                  \
   debug::timer::scoped_timer<std::chrono::nanoseconds> timer##__LINE__(name,   \
                                                                        "ns")
-#define TIMER_NANO() TIMER_NAME_NANO(__PRETTY_FUNCTION__)
+#define TIMER_NANO() TIMER_NAME_NANO(DBG_FUNCSIG)
 #define TIMER_NAME_MICRO(name)                                                 \
   debug::timer::scoped_timer<std::chrono::microseconds> timer##__LINE__(name,  \
                                                                         "μs")
-#define TIMER_MICRO() TIMER_NAME_MICRO(__PRETTY_FUNCTION__)
+#define TIMER_MICRO() TIMER_NAME_MICRO(DBG_FUNCSIG)
 #define TIMER_NAME_MILLI(name)                                                 \
   debug::timer::scoped_timer<std::chrono::milliseconds> timer##__LINE__(name,  \
                                                                         "ms")
-#define TIMER_MILLI() TIMER_NAME_MILLI(__PRETTY_FUNCTION__)
+#define TIMER_MILLI() TIMER_NAME_MILLI(DBG_FUNCSIG)
 #define TIMER_NAME_SEC(name)                                                   \
   debug::timer::scoped_timer<std::chrono::seconds> timer##__LINE__(name, "s")
-#define TIMER_SEC() TIMER_NAME_SEC(__PRETTY_FUNCTION__)
+#define TIMER_SEC() TIMER_NAME_SEC(DBG_FUNCSIG)
 } // namespace debug::timer

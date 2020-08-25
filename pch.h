@@ -19,9 +19,11 @@
 
 #ifdef _WIN32
 #define NOMINMAX
+#define DBG_FUNCSIG __FUNCSIG__
 #include <Shobjidl.h>
 #include <windows.h>
 #elif __linux__
+#define DBG_FUNCSIG __PRETTY_FUNCTION__
 #include <sys/random.h>
 #include <uuid.h>
 #else
