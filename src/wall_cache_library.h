@@ -2,27 +2,41 @@
 #include "../pch.h"
 #include "wall_cache.h"
 #include <compare>
+#include <utility>
 
 namespace wallchanger {
+template <typename T> struct cache_store_t {
+  std::string name;
+  std::string path;
+  T cache;
+  cache_store_t() = default;
+  explicit cache_store_t(std::string cache_name, std::string cache_path,
+                         T content)
+      : name(std::move(cache_name)), path(std::move(cache_path)),
+        cache(std::forward<T>(content)) {}
+  auto operator<=>(const cache_store_t &) const = default;
+};
 
 class cache_lib {
   using cache_type = cache<int, std::string>;
-  using cache_store = std::pair<std::string, cache_type>;
+  using cache_store = cache_store_t<cache_type>;
+  std::vector<cache_store> m_cache_vec;
+  mutable cache_store m_current;
 
 public:
   using cache_lib_type = cache_type;
   cache_lib() = default;
 
-  template <typename T>
-  void insert(const std::string &name, T &&value) noexcept {
+  void insert(std::string name, std::string path,
+              cache_lib_type value) noexcept {
     if (!exists(name)) {
-      auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-      m_cache_vec.emplace_back(name, std::forward<T>(value));
+      auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
+      m_cache_vec.emplace_back(name, path, std::forward<cache_lib_type>(value));
     }
   }
 
   [[nodiscard]] cache_lib_type get_cache(std::string_view name) const noexcept;
-
+  [[nodiscard]] cache_store get_current() const noexcept { return m_current; }
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t capacity() const noexcept {
     return m_cache_vec.capacity();
@@ -38,17 +52,17 @@ public:
 
   [[nodiscard]] cache_lib_type &operator[](std::string_view name) noexcept {
     m_clear_empty();
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-    return rng_it->second;
+    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
+    m_current = *rng_it;
+    return m_current.cache;
   }
 
   auto operator<=>(const cache_lib &) const = default;
 
 private:
-  std::vector<cache_store> m_cache_vec;
   inline void m_clear_empty() noexcept {
     ranges::actions::drop_while(m_cache_vec,
-                                [](auto &type) { return type.second.empty(); });
+                                [](auto &type) { return type.cache.empty(); });
   }
 };
 
