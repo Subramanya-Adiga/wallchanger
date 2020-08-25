@@ -54,12 +54,12 @@ TEST_CASE("Cache Functionality Tests", "[cache function]") {
     cache.insert(1, "hello world"s);
     cache.insert(2, "hello world"s);
 
-    cache.set_state(0, cache.state::s_unused);
-    cache.set_state(1, cache.state::s_null);
-    cache.set_state(2, cache.state::s_used);
+    cache.set_state(0, wallchanger::cache_state_e::unused);
+    cache.set_state(1, wallchanger::cache_state_e::favorate);
+    cache.set_state(2, wallchanger::cache_state_e::used);
 
-    REQUIRE(cache.get_state(0) == cache.state::s_unused);
-    REQUIRE(cache.get_state(1) == cache.state::s_null);
-    REQUIRE(cache.get_state(2) == cache.state::s_used);
+    REQUIRE(cache.get_state(0) == wallchanger::cache_state_e::unused);
+    REQUIRE(cache.get_state(1) == wallchanger::cache_state_e::favorate);
+    REQUIRE(cache.get_state(2) == wallchanger::cache_state_e::used);
   }
 }

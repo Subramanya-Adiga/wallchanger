@@ -5,18 +5,23 @@
 
 namespace wallchanger {
 
-enum class cache_state_e { unused = 0, used = 1, favorate = 11 };
+enum cache_state_e { null = -1, unused = 0, used = 1, favorate = 11 };
 
 template <typename Key, typename Value> struct cache_type_struct {
   Key cache_key;
   Value cache_value;
   cache_state_e cache_state;
-  cache_type_struct(Key cache_key1, Value cache_value1, cache_state_e state1)
-      : cache_key(cache_key1), cache_value(cache_value1), cache_state(state1) {}
+  cache_type_struct() = default;
+  explicit cache_type_struct(Key cache_key1, Value cache_value1,
+                             cache_state_e state1)
+      : cache_key(std::move(cache_key1)),
+        cache_value(std::forward<Value>(cache_value1)), cache_state(state1) {}
+  auto operator<=>(const cache_type_struct &) const = default;
 };
 
 template <typename Key, typename Value> class cache {
-  using cache_t = typename std::pair<Key, std::pair<Value, int>>;
+  using cache_t = cache_type_struct<Key, Value>; // std::pair<Key,
+                                                 // std::pair<Value, int>>;
 
 public:
   using key_type = Key;
@@ -41,8 +46,8 @@ public:
   template <typename val>
   void insert(key_type key, val &&value) requires std::same_as<val, Value> {
     if (!exists(key)) {
-      m_cache_vec.emplace_back(
-          std::move(key), std::make_pair(std::forward<val>(value), s_unused));
+      m_cache_vec.emplace_back(std::move(key), std::forward<val>(value),
+                               cache_state_e::unused);
       m_modified = true;
     }
   }
@@ -50,10 +55,10 @@ public:
   template <typename val>
   void replace(key_type key, val &&value) noexcept
       requires std::same_as<val, Value> {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
-    if (it_rng->first == key) {
-      it_rng->second.first = std::forward<val>(value);
-      it_rng->second.second = s_unused;
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
+    if (it_rng->cache_key == key) {
+      it_rng->cache_value = std::forward<val>(value);
+      it_rng->cache_state = cache_state_e::unused;
       m_modified = true;
     }
   }
@@ -64,7 +69,7 @@ public:
   }
   void erase(key_type key) noexcept {
     ranges::actions::drop_while(
-        m_cache_vec, [&](auto &type) { return (key == type.first); });
+        m_cache_vec, [&](auto &type) { return (key == type.cache_key); });
     m_modified = true;
   }
   void shrink_to_fit() { m_cache_vec.shrink_to_fit(); }
@@ -77,8 +82,8 @@ public:
   [[nodiscard]] bool modified() const noexcept { return m_modified; }
   [[nodiscard]] bool exists(key_type key) const noexcept {
     if (!empty()) {
-      auto rng_it = ranges::find(m_cache_vec, key, &value_type::first);
-      return (rng_it->first == key);
+      auto rng_it = ranges::find(m_cache_vec, key, &value_type::cache_key);
+      return (rng_it->cache_key == key);
     }
     return false;
   }
@@ -90,16 +95,16 @@ public:
   mapped_type &operator[](key_type key) noexcept { return at_(key); }
   mapped_type &operator[](key_type key) const noexcept { return at_(key); }
 
-  void set_state(key_type key, state new_state) noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
-    if (it_rng->first == key) {
-      it_rng->second.second = new_state;
+  void set_state(key_type key, cache_state_e new_state) noexcept {
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
+    if (it_rng->cache_key == key) {
+      it_rng->cache_state = new_state;
       m_modified = true;
     }
   }
-  [[nodiscard]] state get_state(key_type key) const noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
-    return static_cast<state>(it_rng->second.second);
+  [[nodiscard]] cache_state_e get_state(key_type key) const noexcept {
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
+    return static_cast<cache_state_e>(it_rng->cache_state);
   }
 
   reference front() noexcept { return m_cache_vec.front(); }
@@ -127,8 +132,8 @@ private:
   bool m_modified = false;
   std::vector<value_type> m_cache_vec;
   [[nodiscard]] mapped_type at_(key_type key) const noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::first);
-    return it_rng->second.first;
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
+    return it_rng->cache_value;
   }
 };
 
