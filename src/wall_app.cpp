@@ -1,6 +1,7 @@
 #include "wall_app.h"
 
 wallchanger::application::application(std::span<char *> args) {
+  LOGGER_CREATE("changer");
   ranges::for_each(m_group_name, [&](auto &data) {
     m_group_vec.emplace_back(data, po::options_description(data));
   });
