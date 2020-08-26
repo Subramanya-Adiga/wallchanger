@@ -2,7 +2,6 @@
 #include "../pch.h"
 #include "wall_cache.h"
 #include <compare>
-#include <utility>
 
 namespace wallchanger {
 template <typename T> struct cache_store_t {
@@ -28,15 +27,13 @@ public:
   cache_lib() = default;
 
   void insert(std::string name, std::string path,
-              cache_lib_type value) noexcept {
-    if (!exists(name)) {
-      auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
-      m_cache_vec.emplace_back(name, path, std::forward<cache_lib_type>(value));
-    }
-  }
+              cache_lib_type value) noexcept;
 
   [[nodiscard]] cache_lib_type get_cache(std::string_view name) const noexcept;
+  [[nodiscard]] std::string_view
+  get_cache_path(std::string_view name) const noexcept;
   [[nodiscard]] cache_store get_current() const noexcept { return m_current; }
+
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t capacity() const noexcept {
     return m_cache_vec.capacity();
@@ -46,7 +43,6 @@ public:
   }
 
   void remove(std::string_view name) noexcept;
-
   [[nodiscard]] bool empty() const noexcept { return m_cache_vec.empty(); }
   [[nodiscard]] bool modified() const noexcept;
 
@@ -61,8 +57,10 @@ public:
 
 private:
   inline void m_clear_empty() noexcept {
-    ranges::actions::drop_while(m_cache_vec,
-                                [](auto &type) { return type.cache.empty(); });
+    if (!empty()) {
+      ranges::actions::drop_while(
+          m_cache_vec, [](auto &type) { return type.cache.empty(); });
+    }
   }
 };
 
