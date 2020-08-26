@@ -13,7 +13,8 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(project_options INTERFACE -march=znver2)
 elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
                                                    STREQUAL "MSVC"))
-  target_compile_options(project_options INTERFACE /arch:AVX2)
+  target_compile_options(project_options INTERFACE /arch:AVX2
+                                                   /D_ITERATOR_DEBUG_LEVEL=0)
 endif()
 
 target_precompile_headers(
