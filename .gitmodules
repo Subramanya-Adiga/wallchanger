@@ -4,6 +4,3 @@
 [submodule "vendor/catch2"]
 	path = vendor/catch2
 	url = https://github.com/catchorg/Catch2.git
-[submodule "vendor/lua"]
-	path = vendor/lua
-	url = https://github.com/lua/lua.git
