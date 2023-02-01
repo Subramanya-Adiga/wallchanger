@@ -1,25 +1,35 @@
 #include "../pch.h"
 #include "../src/wall_cache.h"
+#include <filesystem>
 #define CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 
-std::uint64_t Fibonacci(std::uint64_t number) {
-  return number < 2 ? 1 : Fibonacci(number - 1) + Fibonacci(number - 2);
-}
+TEST_CASE("Cache") {
 
-TEST_CASE("Fibonacci") {
-  CHECK(Fibonacci(0) == 1);
-  // some more asserts..
-  CHECK(Fibonacci(5) == 8);
-  // some more asserts..
+  BENCHMARK_ADVANCED("CACHE INSERT")(Catch::Benchmark::Chronometer meter) {
+    wallchanger::cache<int, std::string> cache;
+    meter.measure([&] {
+      cache = wallchanger::cache<int, std::string>();
+      int i = 0;
+      for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
+        cache.insert(i, x.path().filename().string());
+        i++;
+      }
+    });
+  };
 
-  // now let's benchmark:
-  BENCHMARK("Fibonacci 20") { return Fibonacci(20); };
-
-  BENCHMARK("Fibonacci 25") { return Fibonacci(25); };
-
-  BENCHMARK("Fibonacci 30") { return Fibonacci(30); };
-
-  BENCHMARK("Fibonacci 35") { return Fibonacci(35); };
+  BENCHMARK_ADVANCED("CACHE INSERT Forward")
+  (Catch::Benchmark::Chronometer meter) {
+    wallchanger::cache<int, std::string> cache;
+    meter.measure([&] {
+      cache = wallchanger::cache<int, std::string>();
+      int i = 0;
+      for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
+        cache.insert(i,
+                     std::forward<std::string>(x.path().filename().string()));
+        i++;
+      }
+    });
+  };
 }

@@ -2,30 +2,47 @@
 #include "../pch.h"
 #include <compare>
 #include <concepts>
+/**
+ * @file wall_cache.h
+ * Implementaion Of Key Value Based Flat Map Type Of Container With
+ * State(Used,Unused,Null).
+ */
 
 namespace wallchanger {
 
+/// Cache State
 enum cache_state_e { null = -1, unused = 0, used = 1, favorate = 11 };
 
+/// Representation Of Cache Item
 template <typename Key, typename Value> struct cache_type_struct {
-  Key cache_key;
-  Value cache_value;
-  cache_state_e cache_state;
-  cache_type_struct() = default;
+  Key cache_key;                 ///< Cache Key
+  Value cache_value;             ///< Cache Value
+  cache_state_e cache_state;     ///< Cache State
+  cache_type_struct() = default; ///< Default Constructor
+  /**
+   * @brief Explicit Constructor
+   * @param cache_key1
+   * @param cache_value1
+   * @param state1
+   */
   explicit cache_type_struct(Key cache_key1, Value cache_value1,
                              cache_state_e state1)
       : cache_key(std::move(cache_key1)),
         cache_value(std::forward<Value>(cache_value1)), cache_state(state1) {}
+  /// Threeway Comparator Operator
   auto operator<=>(const cache_type_struct &) const = default;
 };
 
+/**
+ * Falt Map Type Container For Cache Items
+ */
 template <typename Key, typename Value> class cache {
   using cache_t = cache_type_struct<Key, Value>; // std::pair<Key,
                                                  // std::pair<Value, int>>;
 
 public:
-  using key_type = Key;
-  using mapped_type = Value;
+  using key_type = Key;      ///<  KeyType
+  using mapped_type = Value; ///< Mapped Type
   using value_type = typename std::vector<cache_t>::value_type;
   using size_type = typename std::vector<cache_t>::size_type;
   using reference = typename std::vector<cache_t>::reference;
@@ -35,18 +52,26 @@ public:
 
   enum state { s_null = 0, s_unused = 1, s_used = 2 };
 
-  cache() = default;
+  cache() = default; ///< Default Constructor
+  /**
+   * @brief Constructor With Size
+   * @details Construct Container For Size Items
+   * @param size
+   */
   explicit cache(size_type size) {
     size_type size_ = 0;
     size_ = (size == 0) ? std::numeric_limits<char>::max() : size;
     m_cache_vec.reserve(size_);
   }
   void reserve(size_type size) { m_cache_vec.reserve(size); }
-
+  /**
+   *  @brief Insertion
+   *  @details Insert Value Of Val with Assosiated Key Into Container
+   */
   template <typename val>
   void insert(key_type key, val &&value) requires std::same_as<val, Value> {
     if (!exists(key)) {
-      m_cache_vec.emplace_back(std::move(key), std::forward<val>(value),
+      m_cache_vec.emplace_back(std::move(key), std::move(value),
                                cache_state_e::unused);
       m_modified = true;
     }
@@ -63,6 +88,7 @@ public:
     }
   }
 
+  /// Clears Contents Of Container
   void clear() noexcept {
     m_cache_vec.clear();
     m_modified = true;

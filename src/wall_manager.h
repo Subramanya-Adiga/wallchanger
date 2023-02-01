@@ -27,8 +27,8 @@ public:
 
 private:
   cache_lib::cache_lib_type m_favoriate;
-  std::vector<std::pair<std::string_view, cache_lib>> m_collection;
-  std::pair<std::string_view, cache_lib> m_current;
+  std::vector<std::pair<std::string, cache_lib>> m_collection;
+  std::pair<std::string, cache_lib> m_current;
   std::string m_current_wallpaper;
 };
 } // namespace wallchanger

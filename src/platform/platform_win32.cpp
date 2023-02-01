@@ -24,7 +24,7 @@ bool wallchanger::platform::win32::background::set_wallpaper(
   HRESULT result = S_FALSE;
   if (m_valid_instance) {
     result = m_wallpaper->SetWallpaper(NULL, filename.data());
-    if (!(position > 0) || (position > 5)) {
+    if (!(position > DWPOS_CENTER) || (position > DWPOS_SPAN)) {
       m_wallpaper->SetPosition(
           static_cast<DESKTOP_WALLPAPER_POSITION>(position));
     } else {

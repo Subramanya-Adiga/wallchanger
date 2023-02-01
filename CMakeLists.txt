@@ -13,8 +13,9 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(project_options INTERFACE -march=znver2)
 elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
                                                    STREQUAL "MSVC"))
-  target_compile_options(project_options INTERFACE /arch:AVX2
-                                                   /D_ITERATOR_DEBUG_LEVEL=0)
+  target_compile_options(
+    project_options INTERFACE /arch:AVX2 /D_ITERATOR_DEBUG_LEVEL=0
+                              /D_CRT_SECURE_NO_DEPRECATE)
 endif()
 
 target_precompile_headers(
@@ -36,9 +37,8 @@ add_library(project_dependency INTERFACE)
 
 # Main Executable Project
 add_executable(changer main.cpp)
-target_sources(
-  changer PRIVATE src/wall_cache_library.cpp src/wall_background.cpp
-                  src/wall_app.cpp src/wall_manager.cpp)
+target_sources(changer PRIVATE src/wall_cache_library.cpp
+               src/wall_background.cpp src/wall_app.cpp src/wall_manager.cpp)
 # set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
 set_project_warnings(changer)
 
@@ -111,6 +111,8 @@ if(BUILD_TESTING)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
   include(Catch)
   add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
-  add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
+  endif()
 
 endif()

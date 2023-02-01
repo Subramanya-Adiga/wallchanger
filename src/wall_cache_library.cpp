@@ -3,7 +3,6 @@
 void wallchanger::cache_lib::insert(std::string name, std::string path,
                                     cache_lib_type value) noexcept {
   if (!exists(name)) {
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
     m_cache_vec.emplace_back(name, path, std::forward<cache_lib_type>(value));
   }
 }
