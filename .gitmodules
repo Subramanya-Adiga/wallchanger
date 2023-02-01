@@ -1,9 +1,6 @@
 [submodule "vendor/range-v3"]
 	path = vendor/range-v3
 	url = https://github.com/ericniebler/range-v3.git
-[submodule "vendor/spdlog"]
-	path = vendor/spdlog
-	url = https://github.com/gabime/spdlog.git
 [submodule "vendor/fmtlib"]
 	path = vendor/fmtlib
 	url = https://github.com/fmtlib/fmt.git
