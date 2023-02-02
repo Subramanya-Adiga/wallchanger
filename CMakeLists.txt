@@ -1,118 +1,96 @@
 cmake_minimum_required(VERSION 3.18)
-project(WallChanger LANGUAGES CXX C)
+
+project(
+  Wallchanger
+  VERSION 1.0.0.0
+  LANGUAGES CXX)
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
-include(build_lua)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(project_options INTERFACE)
 target_compile_features(project_options INTERFACE cxx_std_20)
+
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
    OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
    AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
   target_compile_options(project_options INTERFACE -march=znver2)
 elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
                                                    STREQUAL "MSVC"))
-  target_compile_options(
-    project_options INTERFACE /arch:AVX2 /D_ITERATOR_DEBUG_LEVEL=0
-                              /D_CRT_SECURE_NO_DEPRECATE)
+  target_compile_options(project_options INTERFACE /arch:AVX2)
+  target_compile_definitions(project_options INTERFACE _CRT_SECURE_NO_WARNINGS
+                                                       NOMINMAX)
 endif()
 
+set_project_warnings(project_options)
+
+add_library(project_dependency INTERFACE)
 target_precompile_headers(
-  project_options
+  project_dependency
   INTERFACE
   <vector>
   <string>
   <map>
+  <unordered_map>
   <utility>
   <string_view>
   <array>
   <algorithm>
   <memory>
+  <filesystem>
+  <iostream>
+  <tuple>
+  <variant>
   <range/v3/all.hpp>
   <fmt/format.h>
-  <spdlog/spdlog.h>)
+  "src/log.h"
+  "src/scoped_timer.h"
+  <Windows.h>)
 
-add_library(project_dependency INTERFACE)
-
-# Main Executable Project
-add_executable(changer main.cpp)
-target_sources(changer PRIVATE src/wall_cache_library.cpp
-               src/wall_background.cpp src/wall_app.cpp src/wall_manager.cpp)
-# set_target_properties(changer PROPERTIES CXX_EXTENSIONS OFF)
-set_project_warnings(changer)
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_sources(changer PRIVATE src/platform/platform_linux.cpp)
-  set_target_properties(changer PROPERTIES LINK_FLAGS_DEBUG "-Wl,-v")
-  set_target_properties(changer PROPERTIES LINK_WHAT_YOU_USE TRUE)
-  set(Boost_INCLUDE_DIR "/usr/local/include/boost-1_73")
-  set(Boost_USE_STATIC_LIBS ON)
-  set(Boost_ARCHITECTURE -x64)
-
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_options(changer PUBLIC -v -g -O0)
-  else()
-    target_compile_options(changer PUBLIC -O2)
-  endif()
-
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_sources(changer PRIVATE src/platform/platform_win32.cpp)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release" AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL
-                                              "MSVC"))
-    target_compile_options(changer PUBLIC /GL)
-    set_target_properties(changer PROPERTIES LINK_FLAGS "/LTCG")
-  endif()
-endif()
-
-add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/spdlog")
-add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/range-v3")
-add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/fmtlib")
-build_lua("${CMAKE_SOURCE_DIR}/vendor/lua")
-add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/sol2")
-add_subdirectory("${CMAKE_SOURCE_DIR}/vendor/catch2")
-
-add_definitions(-DBOOST_ALL_NO_LIB)
-set(Boost_DEBUG OFF)
-set(Boost_NO_BOOST_CMAKE ON)
-find_package(Boost 1.71 REQUIRED COMPONENTS program_options)
-
-# find_package(Qt5 REQUIRED COMPONENTS Core PATHS "~/.local/Qt/5.14.2/gcc_64"
-# NO_DEFAULT_PATH)
-
-function(set_link_flags TARGET)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_SIMULATE_ID
-                                                 STREQUAL "MSVC"))
-    target_compile_options(${TARGET} PRIVATE -stdlib=libc++ -flto=thin)
-    set_target_properties(
-      ${TARGET}
-      PROPERTIES
-        LINK_FLAGS
-        "-fuse-ld=lld -stdlib=libc++ -Wl,--verbose -Wl,--rpath=/usr/local/lib")
-    target_link_libraries(${TARGET} PRIVATE c++abi c++)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(${TARGET} PRIVATE -flto)
-    set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "-fuse-ld=gold")
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID
-                                                    STREQUAL "MSVC")
-    target_compile_options(${TARGET} PRIVATE -flto=thin)
-  endif()
-endfunction()
-
+find_package(range-v3 REQUIRED)
+find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(sol2 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 target_link_libraries(
   project_dependency
-  INTERFACE spdlog::spdlog_header_only range-v3::range-v3
-            Boost::program_options fmt::fmt-header-only lua::lua_static
-            sol2::sol2)
-set_link_flags(changer)
-target_link_libraries(changer PRIVATE project_options project_dependency)
+  INTERFACE range-v3::range-v3 fmt::fmt-header-only sol2
+            spdlog::spdlog_header_only Boost::program_options)
+
+message(STATUS "Project will be installed to ${CMAKE_INSTALL_PREFIX}")
+include(GNUInstallDirs)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+if(WIN32 AND NOT CYGWIN)
+  set(DEF_INSTALL_CMAKEDIR CMake)
+else()
+  set(DEF_INSTALL_CMAKEDIR share/cmake/${PROJECT_NAME})
+endif()
+set(INSTALL_CMAKEDIR
+    ${DEF_INSTALL_CMAKEDIR}
+    CACHE PATH "Installation directory for CMake files")
+
+foreach(p LIB BIN INCLUDE CMAKE)
+  file(TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_${p}DIR} _path)
+  message(STATUS "Installing ${p} components to ${_path}")
+  unset(_path)
+endforeach()
+
+add_subdirectory("${CMAKE_SOURCE_DIR}/src")
+
+use_libcxx(project_options FALSE)
 
 if(BUILD_TESTING)
-  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/vendor/catch2/contrib")
+  find_package(Catch2 REQUIRED)
+  find_package(benchmark REQUIRED)
   include(Catch)
-  add_subdirectory("${CMAKE_SOURCE_DIR}/testing")
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
-  endif()
+  add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+  add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
 
 endif()

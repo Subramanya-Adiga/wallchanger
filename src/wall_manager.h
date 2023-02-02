@@ -1,5 +1,4 @@
 #pragma once
-#include "../pch.h"
 #include "wall_cache_library.h"
 
 namespace wallchanger {

@@ -1,5 +1,4 @@
 #pragma once
-#include "../pch.h"
 #include <compare>
 #include <concepts>
 /**
@@ -69,7 +68,9 @@ public:
    *  @details Insert Value Of Val with Assosiated Key Into Container
    */
   template <typename val>
-  void insert(key_type key, val &&value) requires std::same_as<val, Value> {
+  void insert(key_type key, val &&value)
+    requires std::same_as<val, Value>
+  {
     if (!exists(key)) {
       m_cache_vec.emplace_back(std::move(key), std::move(value),
                                cache_state_e::unused);
@@ -79,7 +80,8 @@ public:
 
   template <typename val>
   void replace(key_type key, val &&value) noexcept
-      requires std::same_as<val, Value> {
+    requires std::same_as<val, Value>
+  {
     auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
     if (it_rng->cache_key == key) {
       it_rng->cache_value = std::forward<val>(value);

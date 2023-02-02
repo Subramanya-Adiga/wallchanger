@@ -1,4 +1,5 @@
 #include "wall_app.h"
+#include "log.h"
 
 wallchanger::application::application(std::span<char *> args) {
   LOGGER_CREATE("changer");
@@ -17,7 +18,7 @@ wallchanger::application::application(std::span<char *> args) {
       }
     });
   }
-  po::store(po::parse_command_line(args.size(), args.data(),
+  po::store(po::parse_command_line(static_cast<int>(args.size()), args.data(),
                                    m_group_vec.front().second),
             m_option_map);
   po::notify(m_option_map);
