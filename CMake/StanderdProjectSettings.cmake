@@ -2,6 +2,7 @@ include(CTest)
 include(CompilerWarnings)
 include(generate_windows_rc_file)
 include(ccache)
+include(TargetArch)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # macro to build parts of project as release
@@ -23,11 +24,7 @@ option(ENABLE_IPO
 
 if(ENABLE_IPO)
   include(CheckIPOSupported)
-  check_ipo_supported(
-    RESULT
-    result
-    OUTPUT
-    output)
+  check_ipo_supported(RESULT result OUTPUT output)
   if(result)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   else()
@@ -35,12 +32,13 @@ if(ENABLE_IPO)
   endif()
 endif()
 
-function(set_standerd_flag TARGET)
-  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-    target_compile_features(${TARGET} PRIVATE cxx_std_20)
-    set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS OFF)
-  else()
-    target_compile_features(${TARGET} PRIVATE cxx_std_17)
-    set_target_properties(${TARGET} PROPERTIES CXX_EXTENSIONS ON)
+function(use_libcxx TARGET ENABLE)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_SIMULATE_ID
+                                                  STREQUAL "MSVC")) AND (ENABLE
+                                                                        ))
+    target_compile_options(${TARGET} INTERFACE -stdlib=libc++)
+    target_link_options(${TARGET} INTERFACE -stdlib=libc++
+                        -Wl,--rpath=/usr/local/lib)
+    message(STATUS "Using LIBC++")
   endif()
 endfunction()

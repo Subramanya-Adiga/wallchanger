@@ -3,7 +3,7 @@
 # https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
 
 function(set_project_warnings project_name)
-  option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
+  option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" FALSE)
 
   set(MSVC_WARNINGS
       /W4 # Baseline reasonable warnings
@@ -59,7 +59,7 @@ function(set_project_warnings project_name)
       -Wdouble-promotion # warn if float is implicit promoted to double
       -Wformat=2 # warn on security issues around functions that format output
                  # (ie printf)
-  )
+      -Wconversion)
 
   if(WARNINGS_AS_ERRORS)
     set(CLANG_WARNINGS ${CLANG_WARNINGS} -Werror)
