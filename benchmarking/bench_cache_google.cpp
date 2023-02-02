@@ -1,4 +1,3 @@
-#include "../pch.h"
 #include "../src/wall_cache.h"
 #include <benchmark/benchmark.h>
 #include <filesystem>
