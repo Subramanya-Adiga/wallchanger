@@ -72,7 +72,7 @@ public:
     requires std::same_as<val, Value>
   {
     if (!exists(key)) {
-      m_cache_vec.emplace_back(std::move(key), std::move(value),
+      m_cache_vec.emplace_back(std::move(key), std::forward<val>(value),
                                cache_state_e::unused);
       m_modified = true;
     }
@@ -111,7 +111,9 @@ public:
   [[nodiscard]] bool exists(key_type key) const noexcept {
     if (!empty()) {
       auto rng_it = ranges::find(m_cache_vec, key, &value_type::cache_key);
-      return (rng_it->cache_key == key);
+      if (rng_it != ranges::end(m_cache_vec)) {
+        return (rng_it->cache_key == key);
+      }
     }
     return false;
   }

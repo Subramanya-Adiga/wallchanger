@@ -28,7 +28,9 @@ void wallchanger::cache_lib::remove(std::string_view name) noexcept {
 bool wallchanger::cache_lib::exists(std::string_view name) const noexcept {
   if (!empty()) {
     auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
-    return (rng_it->name == name);
+    if (rng_it != ranges::end(m_cache_vec)) {
+      return (rng_it->name == name);
+    }
   }
   return false;
 }
