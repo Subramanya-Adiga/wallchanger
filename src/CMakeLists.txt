@@ -21,4 +21,10 @@ target_sources(
           wall_manager.h
           wall_cache.h)
 
+if(WIN32)
+  target_sources(
+    changer PRIVATE platform/windows_helper.cpp platform/windows_helper.h
+                    platform/platform_win32.cpp platform/platform_win32.h)
+endif()
+
 target_link_libraries(changer PRIVATE project_options project_dependency)
