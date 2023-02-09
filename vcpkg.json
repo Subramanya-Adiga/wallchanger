@@ -8,6 +8,7 @@
     "spdlog",
     "sol2",
     "boost-program-options",
-    "benchmark"
+    "benchmark",
+    "nlohmann-json"
   ]
 }

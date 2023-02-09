@@ -46,6 +46,8 @@ target_precompile_headers(
   <fmt/format.h>
   "src/log.h"
   "src/scoped_timer.h"
+  <nlohmann/json.hpp>
+  "src/json_helper.h"
   <Windows.h>)
 
 find_package(range-v3 REQUIRED)
@@ -53,10 +55,12 @@ find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(sol2 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(nlohmann_json REQUIRED)
 target_link_libraries(
   project_dependency
   INTERFACE range-v3::range-v3 fmt::fmt-header-only sol2
-            spdlog::spdlog_header_only Boost::program_options)
+            spdlog::spdlog_header_only Boost::program_options
+            nlohmann_json::nlohmann_json)
 
 message(STATUS "Project will be installed to ${CMAKE_INSTALL_PREFIX}")
 include(GNUInstallDirs)

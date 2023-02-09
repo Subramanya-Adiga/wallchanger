@@ -19,7 +19,8 @@ target_sources(
           wall_app.h
           wall_manager.cpp
           wall_manager.h
-          wall_cache.h)
+          wall_cache.h
+          json_helper.h)
 
 if(WIN32)
   target_sources(
