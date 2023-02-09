@@ -54,6 +54,9 @@ public:
 
   auto operator<=>(const cache_lib &) const = default;
 
+  void serialize() const;
+  void deserialize();
+
 private:
   inline void m_clear_empty() noexcept {
     if (!empty()) {
