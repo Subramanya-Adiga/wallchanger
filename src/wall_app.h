@@ -5,13 +5,13 @@
 namespace wallchanger {
 namespace po = boost::program_options;
 
-using commandgroup = std::pair<std::string, po::options_description>;
-using commandline = std::vector<
-    std::tuple<std::string_view, std::string_view, const po::value_semantic *>>;
-
 class application {
   static constexpr std::string_view m_version = "0.1 pre alpha";
   static constexpr int m_group_size = 6;
+
+  using commandgroup = std::pair<std::string, po::options_description>;
+  using commandline = std::vector<std::tuple<std::string_view, std::string_view,
+                                             const po::value_semantic *>>;
 
   commandline m_general_options = {
       {"next,n", "next wallpaper", nullptr},
@@ -20,8 +20,7 @@ class application {
       {"move-to-favorate", "move current wallpaper to favorate", nullptr},
       {"list-favorate", "list favorated wallpaper information", nullptr},
       {"version", "Program version", nullptr},
-      {"help,h", "Print Help Message", nullptr},
-      {"help-command", "command specific help", po::value<std::string>()}};
+      {"help,h", "Print Help Message", nullptr}};
 
 public:
   explicit application(std::span<char *> args);

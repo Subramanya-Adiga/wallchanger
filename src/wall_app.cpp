@@ -27,7 +27,7 @@ wallchanger::application::application(std::span<char *> args) {
 int wallchanger::application::run() {
   using namespace std::literals;
   if (m_option_map.count("help") != 0U) {
-    fmt::print("\nusage: wallchanger [command] [option]\n\n"sv);
+    fmt::print("\nusage: wallchanger [command] [option]\n\n");
     ranges::for_each(m_group_vec[0].second.options(), [](auto data) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n"sv, "", data->format_name(),
                  data->description());
@@ -41,19 +41,19 @@ int wallchanger::application::run() {
   if (m_option_map.count("help-command") != 0U) {
     const auto &cmd = m_option_map["help-command"].as<std::string>();
     if (cmd == "history") {
-      fmt::print("\nusage: wallchanger [command] [option]\n\n"sv);
+      fmt::print("\nusage: wallchanger [command] [option]\n\n");
       ranges::for_each(m_group_vec[1].second.options(), [](auto data) {
         fmt::print("{1:<20} {0:^15} {2:<20}\n"sv, "", data->format_name(),
                    data->description());
       });
     } else if (cmd == "collection") {
-      fmt::print("\nusage: wallchanger [command] [option]\n\n"sv);
+      fmt::print("\nusage: wallchanger [command] [option]\n\n");
       ranges::for_each(m_group_vec[2].second.options(), [](auto data) {
         fmt::print("{1:<20} {0:^15} {2:<20}\n"sv, "", data->format_name(),
                    data->description());
       });
     } else {
-      fmt::print("{} is not a supported command\n"sv, cmd);
+      fmt::print("{} is not a supported command\n", cmd);
     }
   }
 
