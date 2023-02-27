@@ -66,25 +66,35 @@ int wallchanger::application::run() {
 
     if (command == "collection") {
 
-      auto options = po::collect_unrecognized(m_parsed_options->options,
-                                              po::include_positional);
-      options.erase(options.begin());
-      po::store(po::command_line_parser(options)
-                    .options(m_group_vec[COLLECTION].second)
-                    .run(),
-                m_option_map);
+      m_process_commands(COLLECTION);
 
-      if (m_option_map.count("help") != 0U) {
-        ranges::for_each(m_group_vec[COLLECTION].second.options(),
-                         [](auto data) {
-                           fmt::print("{1:<20} {0:^15} {2:<20}\n", "",
-                                      data->format_name(), data->description());
-                         });
-      }
+    } else if (command == "configuration") {
+
+      m_process_commands(CONFIG);
+
+    } else if (command == "history") {
+
+      m_process_commands(HISTORY);
 
     } else {
       fmt::print("{} command not supported\n", command);
     }
   }
   return 0;
+}
+
+void wallchanger::application::m_process_commands(subcommand_e cmd) {
+  auto options = po::collect_unrecognized(m_parsed_options->options,
+                                          po::include_positional);
+  options.erase(options.begin());
+  po::store(
+      po::command_line_parser(options).options(m_group_vec[cmd].second).run(),
+      m_option_map);
+
+  if (m_option_map.count("help") != 0U) {
+    ranges::for_each(m_group_vec[cmd].second.options(), [](auto data) {
+      fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
+                 data->description());
+    });
+  }
 }

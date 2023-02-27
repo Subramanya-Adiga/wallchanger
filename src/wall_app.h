@@ -22,13 +22,45 @@ class application {
       {"next,n", "next wallpaper", nullptr},
       {"previous,p", "previous wallpaper", nullptr},
       {"get-current", "print informatin about current wallpaper", nullptr},
-      {"move-to-favorate", "move current wallpaper to favorate", nullptr},
-      {"list-favorate", "list favorated wallpaper information", nullptr},
+      {"mark-favorate", "mark current wallpaper as Favorate", nullptr},
       {"version", "Program version", nullptr},
       {"help,h", "Print Help Message", nullptr}};
 
   commandline m_collection_options{
-      {"create", "create new collection", po::value<std::string>()},
+      {"create", "create new collection. [Arg]", po::value<std::string>()},
+      {"add", "add wallpaper or directory to collection. [Col] [Wall|Dir]",
+       po::value<std::vector<std::string>>()},
+      {"remove,r",
+       "remove collection or wallpaper from collection. [Col] or [Col] [wall]",
+       po::value<std::vector<std::string>>()},
+      {"rename", "rename collection. [Col] [Arg]",
+       po::value<std::vector<std::string>>()},
+      {"merge", "merge two collection. [col1] [col2]",
+       po::value<std::vector<std::string>>()},
+      {"list,l",
+       "list wallpapers in collection [Col]. If Col Is Empty List All "
+       "Collections.",
+       po::value<std::string>()},
+      {"move,m", "move wallpaper from one to another [wall] [col1] [col2]",
+       po::value<std::vector<std::string>>()},
+      {"help,h", "print help message", nullptr}};
+
+  commandline m_config_options{
+      {"collect-favorates",
+       "collect favorates in all collections to new favorate collection",
+       nullptr},
+      {"recursive-dir",
+       "recursively search directories when adding to a collection.[default = "
+       "false]",
+       nullptr},
+      {"priority-favorate", "prioratize favorate collection first", nullptr},
+      {"interval",
+       "set change interval between wallpapers in hours.[default = 24]",
+       po::value<int>()},
+      {"help,h", "print help message", nullptr}};
+
+  commandline m_history_options{
+      {"reset-state", "reset state in all collections", nullptr},
       {"help,h", "print help message", nullptr}};
 
 public:
@@ -45,8 +77,12 @@ private:
 
   std::vector<std::pair<std::string_view, commandline>> m_cmds = {
       {m_group_name[GLOBAL], m_global_options},
-      {m_group_name[COLLECTION], m_collection_options}};
+      {m_group_name[COLLECTION], m_collection_options},
+      {m_group_name[CONFIG], m_config_options},
+      {m_group_name[HISTORY], m_history_options}};
 
   std::vector<commandgroup> m_group_vec;
+
+  void m_process_commands(subcommand_e cmd);
 };
 } // namespace wallchanger
