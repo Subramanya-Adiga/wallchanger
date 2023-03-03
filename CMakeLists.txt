@@ -20,7 +20,7 @@ elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
                                                    STREQUAL "MSVC"))
   target_compile_options(project_options INTERFACE /arch:AVX2)
   target_compile_definitions(project_options INTERFACE _CRT_SECURE_NO_WARNINGS
-                                                       NOMINMAX)
+                                                       NOMINMAX UNICODE)
 endif()
 
 set_project_warnings(project_options)
@@ -44,11 +44,8 @@ target_precompile_headers(
   <variant>
   <range/v3/all.hpp>
   <fmt/format.h>
-  "src/log.h"
-  "src/scoped_timer.h"
   <nlohmann/json.hpp>
-  "src/json_helper.h"
-  <Windows.h>)
+  "src/config.h")
 
 find_package(range-v3 REQUIRED)
 find_package(fmt REQUIRED)
@@ -56,11 +53,16 @@ find_package(spdlog REQUIRED)
 find_package(sol2 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(nlohmann_json REQUIRED)
+find_package(asio REQUIRED)
 target_link_libraries(
   project_dependency
-  INTERFACE range-v3::range-v3 fmt::fmt-header-only sol2
-            spdlog::spdlog_header_only Boost::program_options
-            nlohmann_json::nlohmann_json)
+  INTERFACE range-v3::range-v3
+            fmt::fmt-header-only
+            sol2
+            spdlog::spdlog_header_only
+            Boost::program_options
+            nlohmann_json::nlohmann_json
+            asio::asio)
 
 message(STATUS "Project will be installed to ${CMAKE_INSTALL_PREFIX}")
 include(GNUInstallDirs)

@@ -12,7 +12,7 @@ wallchanger::platform::win32::service_base::run(service_base &runnable) {
   service = &runnable;
 
   std::vector<SERVICE_TABLE_ENTRY> DispatchTable = {
-      {(LPSTR)service->service_name.c_str(),
+      {std::bit_cast<LPWSTR>(service->service_name.c_str()),
        (LPSERVICE_MAIN_FUNCTION)service_main},
       {nullptr, nullptr}};
 
@@ -48,11 +48,12 @@ void wallchanger::platform::win32::service_base::init_service(
 }
 
 void WINAPI wallchanger::platform::win32::service_base::service_main(
-    DWORD dwArgc, LPTSTR *lpszArgv) {
+    DWORD dwArgc, LPWSTR *lpszArgv) {
   // Register the handler function for the service
 
   service->SvcStatusHandle = RegisterServiceCtrlHandler(
-      service->service_name.c_str(), service_control_handler);
+      ::win32::to_utf16(service->service_name).c_str(),
+      service_control_handler);
 
   if (service->SvcStatusHandle == nullptr) {
     service->report_event("RegisterServiceCtrlHandler");
@@ -139,11 +140,14 @@ void wallchanger::platform::win32::service_base::report_svc_status(
 void wallchanger::platform::win32::service_base::report_event(
     std::string_view func_name) const {
   HANDLE event_handle = nullptr;
-  std::array<LPCSTR, 2> strings{};
-  event_handle = RegisterEventSourceA(nullptr, service_name.c_str());
+  std::array<LPCWSTR, 2> strings{};
+  event_handle =
+      RegisterEventSource(nullptr, ::win32::to_utf16(service_name).c_str());
   if (event_handle != nullptr) {
-    strings[0] = service_name.c_str();
-    strings[1] = ::win32::error_handler_win32::fmt_msg(func_name).c_str();
+    strings[0] = ::win32::to_utf16(service_name).c_str();
+    strings[1] =
+        ::win32::to_utf16(::win32::error_handler_win32::fmt_msg(func_name))
+            .c_str();
     ReportEvent(event_handle, EVENTLOG_ERROR_TYPE, 0, SVC_ERROR, nullptr, 2, 0,
                 strings.data(), nullptr);
     DeregisterEventSource(event_handle);
@@ -161,7 +165,8 @@ void wallchanger::platform::win32::service_base::install_service() const {
     return;
   }
 
-  auto fmt = fmt::format("\"{}\"", szUnquotedPath.data());
+  auto fmt =
+      fmt::format("\"{}\"", ::win32::to_utf8(szUnquotedPath.data()).c_str());
   schSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
 
   if (nullptr == schSCManager) {
@@ -170,9 +175,10 @@ void wallchanger::platform::win32::service_base::install_service() const {
   }
 
   schService =
-      CreateService(schSCManager, service_name.c_str(), service_name.c_str(),
-                    SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                    SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, fmt.data(),
+      CreateService(schSCManager, ::win32::to_utf16(service_name).c_str(),
+                    ::win32::to_utf16(service_name).c_str(), SERVICE_ALL_ACCESS,
+                    SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START,
+                    SERVICE_ERROR_NORMAL, ::win32::to_utf16(fmt).c_str(),
                     nullptr, nullptr, nullptr, nullptr, nullptr);
 
   if (schService == nullptr) {

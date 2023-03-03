@@ -9,6 +9,7 @@
     "sol2",
     "boost-program-options",
     "benchmark",
-    "nlohmann-json"
+    "nlohmann-json",
+    "asio"
   ]
 }
