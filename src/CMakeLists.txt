@@ -15,7 +15,12 @@ target_sources(
           wall_manager.cpp
           wall_manager.h
           wall_cache.h
-          json_helper.h)
+          json_helper.h
+          net/net_common.h
+          net/connect_queue.h
+          net/connection.h
+          net/client_interface.h
+          net/server_interface.h)
 
 target_link_libraries(change_service PRIVATE project_options project_dependency)
 
