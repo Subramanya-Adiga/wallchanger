@@ -1,17 +1,16 @@
 #pragma once
 #define ASIO_STANDALONE
-#include "../log.h"
 #include <asio.hpp>
 #include <asio/ts/buffer.hpp>
 #include <asio/ts/internet.hpp>
 
 namespace wallchanger::helper {
 
-consteval std::array<std::uint32_t, 256> generate_crc_table() noexcept {
-  constexpr auto reverse_polynomial = std::uint32_t{0xEDB88320UL};
+consteval std::array<std::uint_fast32_t, 256> generate_crc_table() noexcept {
+  constexpr auto reverse_polynomial = std::uint_fast32_t{0xEDB88320UL};
   struct byte_checksum {
-    constexpr std::uint32_t operator()() noexcept {
-      auto checksum = static_cast<std::uint32_t>(n++);
+    constexpr std::uint_fast32_t operator()() noexcept {
+      auto checksum = static_cast<std::uint_fast32_t>(n++);
 
       for (auto i = 0; i < 8; ++i) {
         checksum =
@@ -25,20 +24,21 @@ consteval std::array<std::uint32_t, 256> generate_crc_table() noexcept {
     unsigned n = 0;
   };
 
-  std::array<std::uint32_t, 256> table{};
+  std::array<std::uint_fast32_t, 256> table{};
   std::generate(table.begin(), table.end(), byte_checksum{});
 
   return table;
 }
 
 template <typename InputIterator>
-constexpr std::uint32_t crc(InputIterator first, InputIterator last) {
+constexpr std::uint_fast32_t crc(InputIterator first, InputIterator last) {
   auto table = generate_crc_table();
 
-  return std::uint32_t{0xFFFFFFFFUL} &
+  return std::uint_fast32_t{0xFFFFFFFFUL} &
          ~std::accumulate(
-             first, last, ~std::uint32_t{0} & std::uint32_t{0xFFFFFFFFUL},
-             [&](std::uint32_t checksum, std::uint8_t value) {
+             first, last,
+             ~std::uint_fast32_t{0} & std::uint_fast32_t{0xFFFFFFFFUL},
+             [&](std::uint_fast32_t checksum, std::uint_fast8_t value) {
                return table[(checksum ^ value) & 0xFFU] ^ (checksum >> 8);
              });
 }
