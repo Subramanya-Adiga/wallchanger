@@ -10,6 +10,7 @@ endif()
 target_sources(
   change_service
   PRIVATE service_main.cpp
+          change_server.h
           wall_cache_library.cpp
           wall_cache_library.h
           wall_manager.cpp
@@ -45,8 +46,10 @@ target_sources(changer PRIVATE wall_app.cpp wall_app.h wall_background.cpp
 
 if(WIN32)
   target_sources(
-    changer PRIVATE platform/windows_helper.cpp platform/windows_helper.h
-                    platform/platform_win32.cpp platform/platform_win32.h)
+    changer
+    PRIVATE change_client.h platform/windows_helper.cpp
+            platform/windows_helper.h platform/platform_win32.cpp
+            platform/platform_win32.h)
 endif()
 
 target_link_libraries(changer PRIVATE project_options project_dependency)
