@@ -12,8 +12,8 @@ public:
   client_interface() {
     LOGGER_CREATE(logger_name);
 #ifdef _DEBUG
-    auto log_file =
-        std::filesystem::current_path() / std::filesystem::path(logger_name);
+    auto log_file = std::filesystem::path(log_directory()) /
+                    std::filesystem::path(logger_name);
     LOGGER_SET_FILE(logger_name, log_file.string() + ".txt");
 #endif
   }
@@ -70,6 +70,8 @@ public:
   [[nodiscard]] connect_queue<owned_message<T>> &incomming() {
     return m_incomming;
   }
+
+  [[nodiscard]] std::string_view get_logger_name() const { return logger_name; }
 
 protected:
   asio::io_context m_context;

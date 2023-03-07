@@ -14,8 +14,8 @@ public:
                    asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)) {
     LOGGER_CREATE(logger_name);
 #ifdef _DEBUG
-    auto log_file =
-        std::filesystem::current_path() / std::filesystem::path(logger_name);
+    auto log_file = std::filesystem::path(log_directory()) /
+                    std::filesystem::path(logger_name);
     LOGGER_SET_FILE(logger_name, log_file.string() + ".txt");
 #endif
   }
@@ -124,6 +124,8 @@ public:
       msg_count++;
     }
   }
+
+  [[nodiscard]] std::string_view get_logger_name() const { return logger_name; }
 
 protected:
   virtual bool on_client_connect(std::shared_ptr<connection<T>> client) {

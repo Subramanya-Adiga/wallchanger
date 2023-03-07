@@ -9,3 +9,10 @@
 #include "platform/windows_helper.h"
 #include <windows.h>
 #endif
+
+inline std::string log_directory() {
+#ifdef _WINDOWS
+  std::string ret = std::getenv("userprofile");
+  return ret + R"(\AppData\Local\Wallchanger\logs\)";
+#endif
+}
