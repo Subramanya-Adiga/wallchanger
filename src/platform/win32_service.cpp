@@ -1,5 +1,7 @@
 #include "win32_service.h"
+
 #include "windows_helper.h"
+#include <cstddef>
 
 wallchanger::platform::win32::service_base
     *wallchanger::platform::win32::service_base::service = nullptr;
@@ -137,6 +139,11 @@ void wallchanger::platform::win32::service_base::report_svc_status(
   SetServiceStatus(SvcStatusHandle, &SvcStatus);
 }
 
+std::string_view
+wallchanger::platform::win32::service_base::get_service_name() const {
+  return service_name;
+}
+
 void wallchanger::platform::win32::service_base::report_event(
     std::string_view func_name) const {
   HANDLE event_handle = nullptr;
@@ -154,41 +161,222 @@ void wallchanger::platform::win32::service_base::report_event(
   }
 }
 
-void wallchanger::platform::win32::service_base::install_service() const {
-  SC_HANDLE schSCManager = nullptr;
-  SC_HANDLE schService = nullptr;
+wallchanger::platform::win32::service_helper::service_helper(
+    const std::string &name)
+    : m_name(name) {
+  if (m_sc_manager_handle =
+          OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
+      m_sc_manager_handle == nullptr) {
+    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenSCManager"));
+  }
+}
+
+wallchanger::platform::win32::service_helper::~service_helper() {
+  if (m_service_handle != nullptr) {
+    CloseHandle(m_service_handle);
+  }
+  if (m_sc_manager_handle != nullptr) {
+    CloseHandle(m_sc_manager_handle);
+  }
+}
+
+void wallchanger::platform::win32::service_helper::install_service(
+    const std::string &description) {
   std::array<TCHAR, MAX_PATH> szUnquotedPath{};
 
   if (!GetModuleFileName(nullptr, szUnquotedPath.data(),
                          static_cast<DWORD>(szUnquotedPath.size()))) {
-    fmt::print("Cannot install service {}\n", GetLastError());
+    fmt::print("{}\n",
+               ::win32::error_handler_win32::fmt_msg("GetModuleFileName"));
     return;
   }
 
   auto fmt =
       fmt::format("\"{}\"", ::win32::to_utf8(szUnquotedPath.data()).c_str());
-  schSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
-
-  if (nullptr == schSCManager) {
-    fmt::print("OpenSCManager failed {}\n", GetLastError());
-    return;
-  }
-
-  schService =
-      CreateService(schSCManager, ::win32::to_utf16(service_name).c_str(),
-                    ::win32::to_utf16(service_name).c_str(), SERVICE_ALL_ACCESS,
-                    SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START,
-                    SERVICE_ERROR_NORMAL, ::win32::to_utf16(fmt).c_str(),
-                    nullptr, nullptr, nullptr, nullptr, nullptr);
-
-  if (schService == nullptr) {
-    fmt::print("CreateService failed {}\n", GetLastError());
-    CloseServiceHandle(schSCManager);
+  if (m_service_handle = CreateService(
+          m_sc_manager_handle, ::win32::to_utf16(m_name).c_str(),
+          ::win32::to_utf16(description).c_str(), SERVICE_ALL_ACCESS,
+          SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
+          ::win32::to_utf16(fmt).c_str(), nullptr, nullptr, nullptr, nullptr,
+          nullptr);
+      m_service_handle == nullptr) {
+    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("CreateService"));
     return;
   } else {
     fmt::print("Service installed successfully\n");
   }
+}
 
-  CloseServiceHandle(schService);
-  CloseServiceHandle(schSCManager);
+void wallchanger::platform::win32::service_helper::query_service_info() {
+  LPQUERY_SERVICE_CONFIG lpsc{};
+  LPSERVICE_DESCRIPTION lpsd{};
+  DWORD dwBytesNeeded{};
+  DWORD cbBufSize{};
+
+  m_service_handle = m_open_service(SERVICE_QUERY_CONFIG);
+
+  if (!QueryServiceConfig(m_service_handle, nullptr, 0, &dwBytesNeeded)) {
+    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+      cbBufSize = dwBytesNeeded;
+      lpsc = std::bit_cast<LPQUERY_SERVICE_CONFIG>(
+          LocalAlloc(LMEM_FIXED, cbBufSize));
+    } else {
+      fmt::print("{}\n",
+                 ::win32::error_handler_win32::fmt_msg("QueryServiceConfig"));
+      return;
+    }
+  }
+
+  if (!QueryServiceConfig(m_service_handle, lpsc, cbBufSize, &dwBytesNeeded)) {
+    fmt::print("{}\n",
+               ::win32::error_handler_win32::fmt_msg("QueryServiceConfig"));
+    return;
+  }
+
+  if (!QueryServiceConfig2(m_service_handle, SERVICE_CONFIG_DESCRIPTION,
+                           nullptr, 0, &dwBytesNeeded)) {
+    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+      cbBufSize = dwBytesNeeded;
+      lpsd = std::bit_cast<LPSERVICE_DESCRIPTION>(
+          LocalAlloc(LMEM_FIXED, cbBufSize));
+    } else {
+      fmt::print("{}\n",
+                 ::win32::error_handler_win32::fmt_msg("QueryServiceConfig2"));
+      return;
+    }
+  }
+
+  if (!QueryServiceConfig2(m_service_handle, SERVICE_CONFIG_DESCRIPTION,
+                           std::bit_cast<LPBYTE>(lpsd), cbBufSize,
+                           &dwBytesNeeded)) {
+    fmt::print("{}\n",
+               ::win32::error_handler_win32::fmt_msg("QueryServiceConfig2"));
+    return;
+  }
+
+  fmt::print("{} configuration:\n Type:{:X}\n Start Type:{:X}\n Error "
+             "Control:{:X}\n BinaryPath:{}\n Account:{}\n ",
+             m_name, lpsc->dwServiceType, lpsc->dwStartType,
+             lpsc->dwErrorControl, ::win32::to_utf8(lpsc->lpBinaryPathName),
+             ::win32::to_utf8(lpsc->lpServiceStartName));
+
+  if (lpsd->lpDescription != nullptr) {
+    fmt::print("Description:{}\n ", ::win32::to_utf8(lpsd->lpDescription));
+  }
+
+  if (lpsc->lpLoadOrderGroup != nullptr) {
+    fmt::print("Load Order Group:{}\n",
+               ::win32::to_utf8(lpsc->lpLoadOrderGroup));
+  }
+
+  if (lpsc->dwTagId != 0) {
+    fmt::print("Tag ID:{}\n ", lpsc->dwTagId);
+  }
+
+  if (lpsc->lpDependencies != nullptr) {
+    fmt::print(" Dependencies:{}\n", ::win32::to_utf8(lpsc->lpDependencies));
+  }
+
+  LocalFree(lpsc);
+  LocalFree(lpsd);
+}
+
+void wallchanger::platform::win32::service_helper::delete_service() {
+  m_service_handle = m_open_service(DELETE);
+
+  if (DeleteService(m_service_handle) == 0) {
+    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("DeleteService"));
+  } else {
+    fmt::print("{} service deleted succesfully", m_name);
+  }
+}
+
+wallchanger::platform::win32::service_helper::service_state
+wallchanger::platform::win32::service_helper::query_service_state() {
+  LPSERVICE_STATUS status_info{};
+  m_service_handle = m_open_service(SERVICE_QUERY_STATUS);
+  status_info = std::bit_cast<LPSERVICE_STATUS>(
+      LocalAlloc(LMEM_FIXED, sizeof(LPSERVICE_STATUS)));
+  if (QueryServiceStatus(m_service_handle, status_info) == 0) {
+    fmt::print("{}\n",
+               ::win32::error_handler_win32::fmt_msg("QueryServiceStatus"));
+    LocalFree(status_info);
+    return {};
+  } else {
+    LocalFree(status_info);
+    return static_cast<service_helper::service_state>(
+        status_info->dwCurrentState);
+  }
+}
+
+bool wallchanger::platform::win32::service_helper::is_installed() {
+  DWORD buffer_size{};
+  DWORD bytes_required{};
+  DWORD total_services{};
+  DWORD resume_handle = 0;
+  LPENUM_SERVICE_STATUS service_status{};
+  std::vector<std::string> vec{};
+
+  bool found = false;
+
+  if (EnumServicesStatus(m_sc_manager_handle, SERVICE_WIN32_OWN_PROCESS,
+                         SERVICE_STATE_ALL, nullptr, 0, &bytes_required,
+                         &total_services, nullptr) == 0) {
+    buffer_size = bytes_required;
+  } else {
+    fmt::print("{}\n",
+               ::win32::error_handler_win32::fmt_msg("EnumServicesStatus"));
+  }
+
+  service_status =
+      std::bit_cast<LPENUM_SERVICE_STATUS>(LocalAlloc(LMEM_FIXED, buffer_size));
+
+  auto enum_services = [&]() -> int {
+    bool more = false;
+    if (auto ret = EnumServicesStatus(m_sc_manager_handle, SERVICE_WIN32,
+                                      SERVICE_STATE_ALL, service_status,
+                                      buffer_size, &bytes_required,
+                                      &total_services, &resume_handle);
+        ret == 0) {
+      if (GetLastError() == ERROR_MORE_DATA) {
+        more = true;
+      }
+    } else {
+      fmt::print("{}\n",
+                 ::win32::error_handler_win32::fmt_msg("EnumServicesStatus"));
+      return 0;
+    }
+    for (DWORD i = 0; i < total_services; i++) {
+      vec.push_back(::win32::to_utf8(service_status[i].lpServiceName));
+    }
+    return more ? ERROR_MORE_DATA : 0;
+  };
+
+  bool quit = false;
+
+  do {
+    if (enum_services() == 0 || ERROR_ACCESS_DENIED) {
+      quit = true;
+    }
+  } while (!quit);
+
+  auto rng_it = ranges::find(vec, m_name);
+  if (rng_it != ranges::end(vec)) {
+    found = true;
+  }
+
+  LocalFree(service_status);
+  return found;
+}
+
+SC_HANDLE
+wallchanger::platform::win32::service_helper::m_open_service(DWORD Access) {
+  SC_HANDLE handle{};
+  if (handle = OpenService(m_sc_manager_handle,
+                           ::win32::to_utf16(m_name).c_str(), Access);
+      handle == nullptr) {
+    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenService"));
+    return {};
+  }
+  return handle;
 }

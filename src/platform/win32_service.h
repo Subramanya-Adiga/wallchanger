@@ -21,6 +21,8 @@ public:
   virtual void start(DWORD) = 0;
   virtual void stop(DWORD) = 0;
 
+  [[nodiscard]] std::string_view get_service_name() const;
+
 protected:
   explicit service_base(std::string name);
   service_base(service_base &&) = default;
@@ -37,7 +39,33 @@ protected:
                          DWORD WaitHint);
 
   void report_event(std::string_view func_name) const;
+};
 
-  void install_service() const;
+class service_helper {
+public:
+  enum class service_state : uint32_t {
+    CONTINUE_PENDING,
+    PAUSE_PENDING,
+    PAUSED,
+    RUNNING,
+    START_PENDING,
+    STOP_PENDING,
+    STOPPED
+  };
+
+  explicit service_helper(const std::string &name);
+  ~service_helper();
+
+  void install_service(const std::string &description);
+  void query_service_info();
+  void delete_service();
+  [[nodiscard]] service_state query_service_state();
+  [[nodiscard]] bool is_installed();
+
+private:
+  SC_HANDLE m_sc_manager_handle{};
+  SC_HANDLE m_service_handle{};
+  std::string m_name;
+  SC_HANDLE m_open_service(DWORD Access);
 };
 } // namespace wallchanger::platform::win32
