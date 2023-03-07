@@ -1,59 +1,50 @@
 #pragma once
+#include "change_server.h"
 #include "log.h"
 #include "platform/win32_service.h"
 
 namespace wallchanger {
 
 class change_service : public platform::win32::service_base {
+  static constexpr std::string_view logger_name = "service_logger";
+
 public:
-  change_service() : service_base("My Change") {
-    LOGGER_CREATE("Service_Logger");
-    LOGGER_SET_FILE("Service_Logger",
-                    std::filesystem::path("D:/servicelogger.txt").string());
+  change_service() : service_base("My Change"), m_server(60000) {
+    LOGGER_CREATE(logger_name);
+    auto path = std::filesystem::path(log_directory()) /
+                std::filesystem::path(logger_name);
+    LOGGER_SET_FILE(logger_name, path.string() + ".txt");
   }
+
   ~change_service() override {
-    CloseHandle(thread_handle);
-    LOG_INFO("Service_Logger", "thread closed");
     CloseHandle(thread_signal);
-    LOG_INFO("Service_Logger", "service closed");
+    LOG_INFO(logger_name, "service closed");
   }
+
   change_service(const change_service &) = delete;
   change_service &operator=(const change_service &) = delete;
-  change_service(change_service &&) = default;
-  change_service &operator=(change_service &&) = default;
+  change_service(change_service &&) = delete;
+  change_service &operator=(change_service &&) = delete;
 
-  void start(DWORD control) override {
-
-    LOG_INFO("Service_Logger", "service started");
-
-    thread_signal = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    thread_handle = CreateThread(nullptr, 0, &change_service::worker,
-                                 thread_signal, 0, nullptr);
-
-    WaitForSingleObject(thread_handle, INFINITE);
-    WaitForSingleObject(thread_signal, INFINITE);
+  void start([[maybe_unused]] DWORD control) override {
+    LOG_INFO(logger_name, "service started");
+    if (m_server.start()) {
+      thread_signal = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+      while (WaitForSingleObject(thread_signal, INFINITE) != WAIT_OBJECT_0) {
+        m_server.update(-1, true);
+      }
+    }
   }
 
-  void stop(DWORD control) override {
+  void stop([[maybe_unused]] DWORD control) override {
     SetEvent(thread_signal);
-    LOG_INFO("Service_Logger", "service stopped");
+    m_server.stop();
+    LOG_INFO(logger_name, "service stopped");
   }
 
 private:
-  HANDLE thread_handle = nullptr;
   HANDLE thread_signal = nullptr;
-
-  static DWORD WINAPI worker(LPVOID lparam) {
-    //  Periodically check if the service has been requested to stop
-    LOG_INFO("Service_Logger", "thread_started");
-    while (WaitForSingleObject(static_cast<HANDLE>(lparam), 0) !=
-           WAIT_OBJECT_0) {
-      LOG_INFO("Service_Logger", "thread_running");
-      Sleep(3000);
-    }
-    LOG_INFO("Service_Logger", "thread_stopped");
-    return ERROR_SUCCESS;
-  }
+  change_server m_server;
 };
 
 } // namespace wallchanger
