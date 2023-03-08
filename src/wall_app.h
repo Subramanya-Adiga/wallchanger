@@ -1,4 +1,5 @@
 #pragma once
+#include "change_client.h"
 #include <boost/program_options.hpp>
 #include <span>
 
@@ -24,6 +25,8 @@ class application {
       {"get-current", "print informatin about current wallpaper", nullptr},
       {"mark-favorate", "mark current wallpaper as Favorate", nullptr},
       {"version", "Program version", nullptr},
+      {"ping", "ping server", nullptr},
+      {"get-status", "get server status", nullptr},
       {"help,h", "Print Help Message", nullptr}};
 
   commandline m_collection_options{
@@ -83,6 +86,11 @@ private:
 
   std::vector<commandgroup> m_group_vec;
 
+  change_client m_client;
+  bool m_connected = false;
+  bool m_stop_processing = false;
+
   void m_process_commands(subcommand_e cmd);
+  void m_process_server_commands();
 };
 } // namespace wallchanger

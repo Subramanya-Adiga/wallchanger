@@ -1,5 +1,6 @@
 #include "wall_app.h"
 #include "log.h"
+#include <fmt/chrono.h>
 
 wallchanger::application::application(std::span<char *> args) {
   LOGGER_CREATE("changer");
@@ -35,6 +36,7 @@ wallchanger::application::application(std::span<char *> args) {
           .run());
 
   po::store(*m_parsed_options, m_option_map);
+  m_connected = m_client.connect("127.0.0.1", 60000);
 }
 
 int wallchanger::application::run() {
@@ -61,6 +63,14 @@ int wallchanger::application::run() {
     fmt::print(stdout, "program version: {}\n", m_version);
   }
 
+  if (m_option_map.count("ping") != 0U) {
+    m_client.ping_server();
+  }
+
+  if (m_option_map.count("get-status") != 0U) {
+    m_client.get_server_status();
+  }
+
   if (m_option_map.count("command") != 0U) {
     auto command = m_option_map["command"].as<std::string>();
 
@@ -80,6 +90,9 @@ int wallchanger::application::run() {
       fmt::print("{} command not supported\n", command);
     }
   }
+  while (!m_stop_processing) {
+    m_process_server_commands();
+  }
   return 0;
 }
 
@@ -96,5 +109,35 @@ void wallchanger::application::m_process_commands(subcommand_e cmd) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
                  data->description());
     });
+  }
+}
+
+void wallchanger::application::m_process_server_commands() {
+  if (m_client.is_connected()) {
+    while (!m_client.incomming().empty()) {
+      auto msg = m_client.incomming().pop_front().msg;
+      switch (msg.header.id) {
+      case MessageType::Server_GetStatus: {
+        nlohmann::json obj;
+        msg >> obj;
+        std::cout << obj << "\n";
+        m_stop_processing = true;
+        break;
+      }
+      case MessageType::Server_GetPing: {
+        auto time_now = std::chrono::system_clock::now();
+        auto time_then = msg.time;
+        fmt::print("{}\n", std::chrono::duration_cast<std::chrono::seconds>(
+                               time_now - time_then));
+        m_stop_processing = true;
+        break;
+      }
+      case MessageType::Client_Accepted:
+      case MessageType::Client_AssignID:
+      case MessageType::Client_RegisterWithServer:
+      case MessageType::Client_UnregisterWithServer:
+        break;
+      }
+    }
   }
 }
