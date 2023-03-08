@@ -30,8 +30,13 @@ public:
     LOG_INFO(logger_name, "service started");
     if (m_server.start()) {
       thread_signal = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-      while (WaitForSingleObject(thread_signal, INFINITE) != WAIT_OBJECT_0) {
+
+      bool quit = false;
+      while (!quit) {
         m_server.update(-1, true);
+        if (WaitForSingleObject(thread_signal, INFINITE) == WAIT_OBJECT_0) {
+          quit = true;
+        }
       }
     }
   }
