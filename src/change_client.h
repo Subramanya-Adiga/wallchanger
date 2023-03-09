@@ -11,5 +11,12 @@ public:
     msg << true;
     send_message(msg);
   }
+
+  void get_server_status() {
+    net::message<MessageType> msg;
+    msg.header.id = MessageType::Server_GetStatus;
+    msg << true;
+    send_message(msg);
+  }
 };
 } // namespace wallchanger

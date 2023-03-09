@@ -37,7 +37,6 @@ protected:
     case wallchanger::MessageType::Server_GetStatus: {
       LOG_INFO(get_logger_name(), "[{}]:Requested Server Status\n",
                client->get_id());
-      msg.body.clear();
       nlohmann::json ret;
       ret["connections"] = m_connections.size();
       auto time_now = std::chrono::system_clock::now();
@@ -45,7 +44,12 @@ protected:
                           time_now - m_start_time)
                           .time_since_epoch()
                           .count();
-      msg << ret;
+      wallchanger::net::message<wallchanger::MessageType> msg;
+      msg.header.id = MessageType::Server_GetStatus;
+      auto vec = nlohmann::json::to_cbor(ret);
+      msg.body.resize(vec.size());
+      std::memcpy(msg.body.data(), vec.data(), vec.size());
+      msg.finalize();
       client->send_message(msg);
       break;
     }

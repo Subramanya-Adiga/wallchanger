@@ -114,13 +114,14 @@ void wallchanger::application::m_process_commands(subcommand_e cmd) {
 
 void wallchanger::application::m_process_server_commands() {
   if (m_client.is_connected()) {
-    while (!m_client.incomming().empty()) {
+    if (!m_client.incomming().empty()) {
       auto msg = m_client.incomming().pop_front().msg;
       switch (msg.header.id) {
       case MessageType::Server_GetStatus: {
-        nlohmann::json obj;
-        msg >> obj;
-        std::cout << obj << "\n";
+        std::vector<uint8_t> res;
+        res.resize(msg.body.size());
+        std::memcpy(res.data(), msg.body.data(), msg.body.size());
+        std::cout << nlohmann::json::from_cbor(res) << "\n";
         m_stop_processing = true;
         break;
       }
