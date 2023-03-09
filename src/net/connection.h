@@ -70,6 +70,7 @@ private:
         [this](std::error_code ec, [[maybe_unused]] std::size_t length) {
           if (!ec) {
             if (m_temp_in.header.size > 0) {
+              m_temp_in.body.resize(m_temp_in.header.size);
               read_body();
             } else {
               add_to_incomming();
@@ -83,7 +84,7 @@ private:
 
   void read_body() {
     asio::async_read(
-        m_socket, asio::buffer(&m_temp_in.body, m_temp_in.header.size),
+        m_socket, asio::buffer(m_temp_in.body.data(), m_temp_in.body.size()),
         [this](std::error_code ec, [[maybe_unused]] std::size_t length) {
           if (!ec) {
             add_to_incomming();
@@ -100,7 +101,7 @@ private:
         asio::buffer(&m_outbound.front().header, sizeof(message_header<T>)),
         [this](std::error_code ec, [[maybe_unused]] std::size_t length) {
           if (!ec) {
-            if (!m_outbound.front().body.empty()) {
+            if (m_outbound.front().body.size() > 0) {
               write_body();
             } else {
               (void)m_outbound.pop_front();
@@ -118,7 +119,8 @@ private:
   void write_body() {
     asio::async_write(
         m_socket,
-        asio::buffer(&m_outbound.front().body, m_outbound.front().body.size()),
+        asio::buffer(m_outbound.front().body.data(),
+                     m_outbound.front().body.size()),
         [this](std::error_code ec, [[maybe_unused]] std::size_t length) {
           if (!ec) {
             (void)m_outbound.pop_front();
