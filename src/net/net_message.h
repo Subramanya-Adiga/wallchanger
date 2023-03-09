@@ -11,23 +11,53 @@ template <typename T> struct message_header {
 template <typename T> struct message {
   message_header<T> header{};
   std::chrono::time_point<std::chrono::system_clock> time{};
-  nlohmann::json body{};
+  std::vector<uint8_t> body{};
 
-  friend message<T> &operator<<(message<T> &msg, const nlohmann::json &data) {
-    msg.header.hash = wallchanger::helper::crc(data.begin(), data.end());
-    msg.time = std::chrono::system_clock::now();
-    msg.header.size = static_cast<uint32_t>(data.size());
-    msg.body = data;
+  void finalize() {
+    header.hash = wallchanger::helper::crc(body.begin(), body.end());
+    header.size = static_cast<uint32_t>(body.size());
+    time = std::chrono::system_clock::now();
+  }
+
+  [[nodiscard]] bool validate() {
+    auto gen_crc = wallchanger::helper::crc(body.begin(), body.end());
+    return gen_crc == header.hash;
+  }
+
+  template <typename DataType>
+  friend message<T> &operator<<(message<T> &msg, const DataType &data) {
+    static_assert(std::is_standard_layout<DataType>::value,
+                  "Data is too complex to be pushed into vector");
+
+    size_t i = msg.body.size();
+
+    msg.body.resize(msg.body.size() + sizeof(DataType));
+
+    std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+
+    msg.header.size = static_cast<uint32_t>(msg.body.size());
+
+    msg.finalize();
+
     return msg;
   }
 
-  friend message<T> &operator>>(message<T> &msg, nlohmann::json &data) {
-    auto gen_crc = wallchanger::helper::crc(msg.body.begin(), msg.body.end());
-    if (gen_crc == msg.header.hash) {
-      data = msg.body;
-    } else {
-      throw std::domain_error("Failed CRC Match. Data Maybe Corrupt.");
+  // Pulls any POD-like data form the message buffer
+  template <typename DataType>
+  friend message<T> &operator>>(message<T> &msg, DataType &data) {
+
+    static_assert(std::is_standard_layout<DataType>::value,
+                  "Data is too complex to be pulled from vector");
+    if (msg.validate()) {
+      size_t i = msg.body.size() - sizeof(DataType);
+
+      std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
+
+      msg.body.resize(i);
+
+      msg.header.size = msg.body.size();
     }
+
     return msg;
   }
 };
