@@ -118,10 +118,9 @@ void wallchanger::application::m_process_server_commands() {
       auto msg = m_client.incomming().pop_front().msg;
       switch (msg.header.id) {
       case MessageType::Server_GetStatus: {
-        std::vector<uint8_t> res;
-        res.resize(msg.body.size());
-        std::memcpy(res.data(), msg.body.data(), msg.body.size());
-        std::cout << nlohmann::json::from_cbor(res) << "\n";
+        if (msg.validate()) {
+          std::cout << change_client::msg_to_json(msg) << "\n";
+        }
         m_stop_processing = true;
         break;
       }

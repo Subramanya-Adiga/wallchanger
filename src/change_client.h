@@ -18,5 +18,12 @@ public:
     msg << true;
     send_message(msg);
   }
+
+  static nlohmann::json msg_to_json(const net::message<MessageType> &msg) {
+    std::vector<uint8_t> res;
+    res.resize(msg.body.size());
+    std::memcpy(res.data(), msg.body.data(), msg.body.size());
+    return nlohmann::json::from_cbor(res);
+  }
 };
 } // namespace wallchanger

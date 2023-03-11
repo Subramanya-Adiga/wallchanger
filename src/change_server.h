@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 
 namespace wallchanger {
+
 class change_server : public net::server_interface<MessageType> {
 public:
   explicit change_server(uint16_t port)
@@ -44,13 +45,7 @@ protected:
                           time_now - m_start_time)
                           .time_since_epoch()
                           .count();
-      wallchanger::net::message<wallchanger::MessageType> msg;
-      msg.header.id = MessageType::Server_GetStatus;
-      auto vec = nlohmann::json::to_cbor(ret);
-      msg.body.resize(vec.size());
-      std::memcpy(msg.body.data(), vec.data(), vec.size());
-      msg.finalize();
-      client->send_message(msg);
+      client->send_message(m_json_to_msg(MessageType::Server_GetStatus, ret));
       break;
     }
 
@@ -71,5 +66,16 @@ protected:
 
 private:
   std::chrono::time_point<std::chrono::system_clock> m_start_time;
+
+  static net::message<MessageType> m_json_to_msg(MessageType type,
+                                                 nlohmann::json &json) {
+    wallchanger::net::message<wallchanger::MessageType> msg;
+    msg.header.id = type;
+    auto vec = nlohmann::json::to_cbor(json);
+    msg.body.resize(vec.size());
+    std::memcpy(msg.body.data(), vec.data(), vec.size());
+    msg.finalize();
+    return msg;
+  }
 };
 } // namespace wallchanger
