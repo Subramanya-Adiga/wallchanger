@@ -16,40 +16,30 @@ public:
     LOGGER_SET_FILE(logger_name, path.string() + ".txt");
   }
 
-  ~change_service() override {
-    CloseHandle(thread_signal);
-    LOG_INFO(logger_name, "service closed");
-  }
-
-  change_service(const change_service &) = delete;
-  change_service &operator=(const change_service &) = delete;
-  change_service(change_service &&) = delete;
-  change_service &operator=(change_service &&) = delete;
-
   void start([[maybe_unused]] DWORD control) override {
     LOG_INFO(logger_name, "service started");
     if (m_server.start()) {
-      thread_signal = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-
-      bool quit = false;
-      while (!quit) {
-        m_server.update(-1, true);
-        if (WaitForSingleObject(thread_signal, INFINITE) == WAIT_OBJECT_0) {
-          quit = true;
+      m_exec = std::thread([&]() {
+        while (!m_stop) {
+          m_server.update(-1, false);
         }
-      }
+        m_server.stop();
+      });
     }
   }
 
   void stop([[maybe_unused]] DWORD control) override {
-    SetEvent(thread_signal);
-    m_server.stop();
+    m_stop = true;
+    if (m_exec.joinable()) {
+      m_exec.join();
+    }
     LOG_INFO(logger_name, "service stopped");
   }
 
 private:
-  HANDLE thread_signal = nullptr;
   change_server m_server;
+  std::thread m_exec;
+  std::atomic_bool m_stop = false;
 };
 
 } // namespace wallchanger
