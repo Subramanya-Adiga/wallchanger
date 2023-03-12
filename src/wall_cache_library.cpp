@@ -64,14 +64,14 @@ void wallchanger::cache_lib::serialize() const {
   }
   obj["cache_libraries"] = obj_array;
 
-  std::ofstream obj_file("libraries.json", std::ios::out);
+  std::ofstream obj_file(data_directory() + "libraries.json", std::ios::out);
   if (obj_file.good()) {
     obj_file << std::setw(4) << obj << std::endl;
   }
 }
 
 void wallchanger::cache_lib::deserialize() {
-  std::ifstream obj_file("libraries.json", std::ios::in);
+  std::ifstream obj_file(data_directory() + "libraries.json", std::ios::in);
   if (obj_file.good()) {
     nlohmann::json obj;
     obj_file >> obj;
