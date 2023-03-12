@@ -1,6 +1,5 @@
 #include "wall_app.h"
 #include "log.h"
-#include <fmt/chrono.h>
 
 wallchanger::application::application(std::span<char *> args) {
   LOGGER_CREATE("changer");
@@ -36,7 +35,6 @@ wallchanger::application::application(std::span<char *> args) {
           .run());
 
   po::store(*m_parsed_options, m_option_map);
-  m_connected = m_client.connect("127.0.0.1", 60000);
 }
 
 int wallchanger::application::run() {
@@ -77,6 +75,23 @@ int wallchanger::application::run() {
     if (command == "collection") {
 
       m_process_commands(COLLECTION);
+      if (m_option_map.count("create") != 0U) {
+        auto res = m_option_map["create"].as<std::vector<std::string>>();
+        nlohmann::json msg_new;
+        msg_new["new_col_name"] = res[0];
+        msg_new["col_path"] = res[1];
+        msg_new["recursive"] = false;
+        m_client.send_message(message_helper::json_to_msg(
+            MessageType::Create_Collection, msg_new));
+      }
+
+      if (m_option_map.count("set-active") != 0U) {
+        auto res = m_option_map["set-active"].as<std::string>();
+        net::message<MessageType> msg;
+        msg.header.id = MessageType::Change_Active_Collection;
+        msg << res.c_str();
+        m_client.send_message(msg);
+      }
 
     } else if (command == "configuration") {
 
@@ -90,9 +105,11 @@ int wallchanger::application::run() {
       fmt::print("{} command not supported\n", command);
     }
   }
-  while (!m_stop_processing) {
-    m_process_server_commands();
+
+  if (m_client.active()) {
+    m_client.run();
   }
+
   return 0;
 }
 
@@ -109,35 +126,5 @@ void wallchanger::application::m_process_commands(subcommand_e cmd) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
                  data->description());
     });
-  }
-}
-
-void wallchanger::application::m_process_server_commands() {
-  if (m_client.is_connected()) {
-    if (!m_client.incomming().empty()) {
-      auto msg = m_client.incomming().pop_front().msg;
-      switch (msg.header.id) {
-      case MessageType::Server_GetStatus: {
-        if (msg.validate()) {
-          std::cout << change_client::msg_to_json(msg) << "\n";
-        }
-        m_stop_processing = true;
-        break;
-      }
-      case MessageType::Server_GetPing: {
-        auto time_now = std::chrono::system_clock::now();
-        auto time_then = msg.time;
-        fmt::print("{}\n", std::chrono::duration_cast<std::chrono::seconds>(
-                               time_now - time_then));
-        m_stop_processing = true;
-        break;
-      }
-      case MessageType::Client_Accepted:
-      case MessageType::Client_AssignID:
-      case MessageType::Client_RegisterWithServer:
-      case MessageType::Client_UnregisterWithServer:
-        break;
-      }
-    }
   }
 }

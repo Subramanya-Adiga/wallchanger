@@ -30,7 +30,10 @@ class application {
       {"help,h", "Print Help Message", nullptr}};
 
   commandline m_collection_options{
-      {"create", "create new collection. [Arg]", po::value<std::string>()},
+      {"create", "create new collection. [Col] [Path]",
+       po::value<std::vector<std::string>>()->multitoken()},
+      {"set-active", "Change Active Collection To [Arg].",
+       po::value<std::string>()},
       {"add", "add wallpaper or directory to collection. [Col] [Wall|Dir]",
        po::value<std::vector<std::string>>()},
       {"remove,r",
@@ -85,12 +88,8 @@ private:
       {m_group_name[HISTORY], m_history_options}};
 
   std::vector<commandgroup> m_group_vec;
-
-  change_client m_client;
-  bool m_connected = false;
-  bool m_stop_processing = false;
+  wallchanger::change_client m_client;
 
   void m_process_commands(subcommand_e cmd);
-  void m_process_server_commands();
 };
 } // namespace wallchanger
