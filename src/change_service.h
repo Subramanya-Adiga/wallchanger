@@ -26,6 +26,7 @@ public:
         m_server.stop();
       });
     }
+    WaitForSingleObject(m_exec.native_handle(), INFINITE);
   }
 
   void stop([[maybe_unused]] DWORD control) override {
@@ -33,6 +34,7 @@ public:
     if (m_exec.joinable()) {
       m_exec.join();
     }
+    m_server.store_state();
     LOG_INFO(logger_name, "service stopped");
   }
 
