@@ -35,20 +35,20 @@ class application {
       {"set-active", "Change Active Collection To [Arg].",
        po::value<std::string>()},
       {"add", "add wallpaper or directory to collection. [Col] [Wall|Dir]",
-       po::value<std::vector<std::string>>()},
+       po::value<std::vector<std::string>>()->multitoken()},
       {"remove,r",
        "remove collection or wallpaper from collection. [Col] or [Col] [wall]",
-       po::value<std::vector<std::string>>()},
+       po::value<std::vector<std::string>>()->multitoken()},
       {"rename", "rename collection. [Col] [Arg]",
-       po::value<std::vector<std::string>>()},
+       po::value<std::vector<std::string>>()->multitoken()},
       {"merge", "merge two collection. [col1] [col2]",
-       po::value<std::vector<std::string>>()},
+       po::value<std::vector<std::string>>()->multitoken()},
       {"list,l",
        "list wallpapers in collection [Col]. If Col Is Empty List All "
        "Collections.",
        po::value<std::string>()},
       {"move,m", "move wallpaper from one to another [wall] [col1] [col2]",
-       po::value<std::vector<std::string>>()},
+       po::value<std::vector<std::string>>()->multitoken()},
       {"help,h", "print help message", nullptr}};
 
   commandline m_config_options{
