@@ -9,10 +9,18 @@ enum class MessageType : uint32_t {
   Client_AssignID,
   Client_RegisterWithServer,
   Client_UnregisterWithServer,
-  Create_Collection,
+  // Genarel Messages
   Get_Next_Wallpaper,
   Get_Previous_Wallpaper,
+  Mark_Favorate,
+  Get_Current,
+  // Collection Messages
+  Create_Collection,
   Change_Active_Collection,
+  Rename_Collection,
+  Remove_Collection,
+  List_Collections,
+  // Status Messages
   Status_Success,
   Status_Failure,
 };

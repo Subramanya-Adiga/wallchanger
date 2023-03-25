@@ -1,7 +1,10 @@
 #pragma once
 #include "message_type.h"
 #include "net/client_interface.h"
+#include "platform/platform_win32.h"
+#include "wall_background.h"
 #include <fmt/chrono.h>
+
 namespace wallchanger {
 class change_client : public net::client_interface<MessageType> {
 public:
@@ -53,15 +56,72 @@ private:
           case MessageType::Status_Success: {
             m_stop_processing = true;
           } break;
+          case MessageType::Status_Failure: {
+            LOG_ERR(get_logger_name(), "Server Error\n");
+            m_stop_processing = true;
+          } break;
+          case MessageType::Get_Next_Wallpaper: {
+            auto get = message_helper::msg_to_json(msg);
+            auto background = background_handler::create();
+            if (background) {
+              if (background->is_active()) {
+                if (!background->set_wallpaper(
+                        get["path"].get<std::string>() + "/" +
+                            get["wallpaper"].get<std::string>(),
+                        2)) {
+                  LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+                }
+              } else {
+                LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+              }
+            } else {
+              LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+            }
+            m_stop_processing = true;
+          } break;
+          case MessageType::Get_Previous_Wallpaper: {
+            auto get = message_helper::msg_to_json(msg);
+            auto background = background_handler::create();
+            if (background) {
+              if (background->is_active()) {
+                if (!background->set_wallpaper(
+                        get["path"].get<std::string>() + "/" +
+                            get["wallpaper"].get<std::string>(),
+                        2)) {
+                  LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+                }
+              } else {
+                LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+              }
+            } else {
+              LOG_ERR(get_logger_name(), "{}\n", background->get_error());
+            }
+            m_stop_processing = true;
+          } break;
+          case MessageType::Get_Current: {
+            auto obj = message_helper::msg_to_json(msg);
+            wallchanger::platform::win32::get_image_information info(
+                obj["path"].get<std::string>() + "/" +
+                obj["wallpaper"].get<std::string>());
+            m_stop_processing = true;
+          } break;
+          case MessageType::List_Collections: {
+            auto obj = message_helper::msg_to_json(msg);
+            fmt::print(
+                "{}\n",
+                fmt::join(obj["list"].get<std::vector<std::string>>(), ","));
+            m_stop_processing = true;
+          } break;
+          case MessageType::Create_Collection:
+          case MessageType::Change_Active_Collection:
+          case MessageType::Mark_Favorate:
+          case MessageType::Rename_Collection:
+          case MessageType::Remove_Collection:
           case MessageType::Client_Accepted:
           case MessageType::Client_AssignID:
           case MessageType::Client_RegisterWithServer:
           case MessageType::Client_UnregisterWithServer:
-          case MessageType::Create_Collection:
-          case MessageType::Get_Next_Wallpaper:
-          case MessageType::Get_Previous_Wallpaper:
-          case MessageType::Change_Active_Collection:
-          case MessageType::Status_Failure:
+
             break;
           }
         }
