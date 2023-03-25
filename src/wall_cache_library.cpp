@@ -2,6 +2,13 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+wallchanger::cache_lib::cache_lib() {
+  if (deserialize()) {
+    auto rng_it = ranges::find(m_cache_vec, m_active_name, &cache_store::name);
+    m_current = *rng_it;
+  }
+}
+
 void wallchanger::cache_lib::insert(std::string name, std::string path,
                                     cache_lib_type value) noexcept {
   if (!exists(name)) {
@@ -19,12 +26,32 @@ wallchanger::cache_lib::get_cache(std::string_view name) const noexcept {
   return {};
 }
 
+void wallchanger::cache_lib::change_active(
+    std::string_view new_active) noexcept {
+  auto rng_it = ranges::find(m_cache_vec, new_active, &cache_store::name);
+  m_active_name = rng_it->name;
+  m_current = *rng_it;
+}
+
+void wallchanger::cache_lib::rename_store(std::string_view from,
+                                          std::string_view to) noexcept {
+  auto rng_it = ranges::find(m_cache_vec, from, &cache_store::name);
+  rng_it->name = to;
+  if (from == m_active_name) {
+    m_active_name = to;
+  }
+}
+
 void wallchanger::cache_lib::remove(std::string_view name) noexcept {
   if (exists(name)) {
     auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
     rng_it->cache.clear();
     m_clear_empty();
   }
+}
+
+bool wallchanger::cache_lib::empty() const noexcept {
+  return m_cache_vec.empty();
 }
 
 bool wallchanger::cache_lib::exists(std::string_view name) const noexcept {
@@ -35,6 +62,14 @@ bool wallchanger::cache_lib::exists(std::string_view name) const noexcept {
     }
   }
   return false;
+}
+
+size_t wallchanger::cache_lib::capacity() const noexcept {
+  return m_cache_vec.capacity();
+}
+
+size_t wallchanger::cache_lib::cache_count() const noexcept {
+  return m_cache_vec.size();
 }
 
 std::string_view
@@ -55,9 +90,23 @@ bool wallchanger::cache_lib::modified() const noexcept {
   return false;
 }
 
+wallchanger::cache_lib::cache_store
+wallchanger::cache_lib::get_current() const noexcept {
+  return m_current;
+}
+
+std::vector<std::string> wallchanger::cache_lib::cache_list() const noexcept {
+  std::vector<std::string> ret(m_cache_vec.size());
+  for (auto &&name : m_cache_vec) {
+    ret.push_back(name.name);
+  }
+  return ret;
+}
+
 void wallchanger::cache_lib::serialize() const {
   nlohmann::json obj;
   obj["total_count"] = m_cache_vec.size();
+  obj["active"] = m_current.name;
   auto obj_array = nlohmann::json::array();
   for (auto &&entries : m_cache_vec) {
     obj_array.push_back(entries);
@@ -70,7 +119,7 @@ void wallchanger::cache_lib::serialize() const {
   }
 }
 
-void wallchanger::cache_lib::deserialize() {
+bool wallchanger::cache_lib::deserialize() {
   std::ifstream obj_file(data_directory() + "libraries.json", std::ios::in);
   if (obj_file.good()) {
     nlohmann::json obj;
@@ -80,5 +129,8 @@ void wallchanger::cache_lib::deserialize() {
         m_cache_vec.push_back(entries.get<cache_store>());
       }
     }
+    m_active_name = obj["active"].get<std::string>();
+    return true;
   }
+  return false;
 }

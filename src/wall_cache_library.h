@@ -23,7 +23,7 @@ class cache_lib {
 
 public:
   using cache_lib_type = cache_type;
-  cache_lib() = default;
+  cache_lib();
 
   void insert(std::string name, std::string path,
               cache_lib_type value) noexcept;
@@ -31,19 +31,20 @@ public:
   [[nodiscard]] cache_lib_type get_cache(std::string_view name) const noexcept;
   [[nodiscard]] std::string_view
   get_cache_path(std::string_view name) const noexcept;
-  [[nodiscard]] cache_store get_current() const noexcept { return m_current; }
+  [[nodiscard]] cache_store get_current() const noexcept;
+
+  void change_active(std::string_view new_active) noexcept;
+  void rename_store(std::string_view from, std::string_view to) noexcept;
 
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
-  [[nodiscard]] size_t capacity() const noexcept {
-    return m_cache_vec.capacity();
-  }
-  [[nodiscard]] size_t cache_count() const noexcept {
-    return m_cache_vec.size();
-  }
+  [[nodiscard]] size_t capacity() const noexcept;
+  [[nodiscard]] size_t cache_count() const noexcept;
 
   void remove(std::string_view name) noexcept;
-  [[nodiscard]] bool empty() const noexcept { return m_cache_vec.empty(); }
+  [[nodiscard]] bool empty() const noexcept;
   [[nodiscard]] bool modified() const noexcept;
+
+  [[nodiscard]] std::vector<std::string> cache_list() const noexcept;
 
   [[nodiscard]] cache_lib_type &operator[](std::string_view name) noexcept {
     m_clear_empty();
@@ -55,9 +56,10 @@ public:
   auto operator<=>(const cache_lib &) const = default;
 
   void serialize() const;
-  void deserialize();
+  bool deserialize();
 
 private:
+  std::string m_active_name;
   inline void m_clear_empty() noexcept {
     if (!empty()) {
       ranges::actions::drop_while(

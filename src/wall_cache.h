@@ -10,7 +10,12 @@
 namespace wallchanger {
 
 /// Cache State
-enum cache_state_e { null = -1, unused = 0, used = 1, favorate = 11 };
+enum class cache_state_e : uint32_t {
+  null,
+  unused,
+  used,
+  favorate,
+};
 
 /// Representation Of Cache Item
 template <typename Key, typename Value> struct cache_type_struct {
@@ -48,8 +53,9 @@ public:
   using const_reference = typename std::vector<cache_t>::const_reference;
   using iterator = typename std::vector<cache_t>::iterator;
   using const_iterator = typename std::vector<cache_t>::const_iterator;
-
-  enum state { s_null = 0, s_unused = 1, s_used = 2 };
+  using reverse_iterator = typename std::vector<cache_t>::reverse_iterator;
+  using const_reverse_iterator =
+      typename std::vector<cache_t>::const_reverse_iterator;
 
   cache() = default; ///< Default Constructor
   /**
@@ -122,8 +128,6 @@ public:
     return at_(key);
   }
   [[nodiscard]] mapped_type get(key_type key) noexcept { return at_(key); }
-  mapped_type &operator[](key_type key) noexcept { return at_(key); }
-  mapped_type &operator[](key_type key) const noexcept { return at_(key); }
 
   void set_state(key_type key, cache_state_e new_state) noexcept {
     auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
@@ -137,8 +141,10 @@ public:
     return static_cast<cache_state_e>(it_rng->cache_state);
   }
 
+  // Refrences
   reference front() noexcept { return m_cache_vec.front(); }
   reference back() noexcept { return m_cache_vec.back(); }
+
   [[nodiscard]] const_reference front() const noexcept {
     return m_cache_vec.front();
   }
@@ -146,14 +152,37 @@ public:
     return m_cache_vec.back();
   }
 
-  iterator begin() noexcept { return std::begin(m_cache_vec); }
-  iterator end() noexcept { return std::end(m_cache_vec); }
-  [[nodiscard]] const_iterator cbegin() const noexcept {
-    return std::cbegin(m_cache_vec);
+  // Iterators
+  [[nodiscard]] iterator begin() noexcept { return std::begin(m_cache_vec); }
+  [[nodiscard]] iterator end() noexcept { return std::end(m_cache_vec); }
+
+  [[nodiscard]] const_iterator begin() const noexcept { return begin(); }
+  [[nodiscard]] const_iterator end() const noexcept { return end(); }
+
+  [[nodiscard]] const_iterator cbegin() const noexcept { return begin(); }
+  [[nodiscard]] const_iterator cend() const noexcept { return end(); }
+
+  [[nodiscard]] reverse_iterator rbegin() noexcept {
+    return std::rbegin(m_cache_vec);
   }
-  [[nodiscard]] const_iterator cend() const noexcept {
-    return std::cend(m_cache_vec);
+  [[nodiscard]] reverse_iterator rend() noexcept {
+    return std::rend(m_cache_vec);
   }
+
+  [[nodiscard]] const_reverse_iterator rbegin() const noexcept {
+    return rbegin();
+  }
+  [[nodiscard]] const_reverse_iterator rend() const noexcept { return rend(); }
+
+  [[nodiscard]] const_reverse_iterator crbegin() const noexcept {
+    return rbegin();
+  }
+  [[nodiscard]] const_reverse_iterator crend() const noexcept { return rend(); }
+
+  // Operators
+  mapped_type operator[](key_type key) const noexcept { return at_(key); }
+
+  mapped_type operator[](key_type key) noexcept { return at_(key); }
 
   bool operator!() const noexcept { return this->m_cache_vec.empty(); }
   auto operator<=>(const cache &) const = default;
