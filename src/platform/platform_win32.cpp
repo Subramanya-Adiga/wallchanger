@@ -1,6 +1,54 @@
 #include "platform_win32.h"
 #include "windows_helper.h"
 
+wallchanger::platform::win32::get_image_information::get_image_information(
+    const std::string &image) {
+  auto status = Gdiplus::GdiplusStartup(&m_start_token, &m_input, nullptr);
+  if (SUCCEEDED(status)) {
+    m_initialized = true;
+    m_image = Gdiplus::Image::FromFile(::win32::to_utf16(image).c_str());
+  } else {
+    m_error = ::win32::error_handler_win32::fmt_msg("Gdiplus::GdiplusStartup",
+                                                    status);
+  }
+}
+// GetFlags,GetPixelFormat
+wallchanger::platform::win32::get_image_information::~get_image_information() {
+  if (m_initialized) {
+    delete m_image;
+    Gdiplus::GdiplusShutdown(m_start_token);
+  }
+}
+
+std::string wallchanger::platform::win32::get_image_information::error() const {
+  return m_error;
+}
+
+bool wallchanger::platform::win32::get_image_information::initialized() const {
+  return m_initialized;
+}
+
+std::pair<int, int>
+wallchanger::platform::win32::get_image_information::get_dimensions() const {
+  return std::make_pair(m_image->GetWidth(), m_image->GetHeight());
+}
+
+std::string
+wallchanger::platform::win32::get_image_information::retrive_image_properties()
+    const {
+  UINT buffersize{};
+  UINT propcount{};
+  m_image->GetPropertySize(&buffersize, &propcount);
+  std::vector<Gdiplus::PropertyItem> items(buffersize);
+  m_image->GetAllPropertyItems(buffersize, propcount, &items[0]);
+  items.resize(propcount);
+  std::string ret;
+  for (auto &&item : items) {
+    ret += fmt::format("{}", item);
+  }
+  return ret;
+}
+
 wallchanger::platform::win32::win32_background_handler::
     win32_background_handler() {
   HRESULT res = CoInitialize(nullptr);
