@@ -53,3 +53,5 @@ if(WIN32)
 endif()
 
 target_link_libraries(changer PRIVATE project_options project_dependency)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/gui")

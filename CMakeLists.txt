@@ -6,6 +6,7 @@ project(
   LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+list(APPEND CMAKE_PREFIX_PATH $ENV{QT6_INSTALL_DIR})
 include(StanderdProjectSettings)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -54,6 +55,7 @@ find_package(sol2 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(nlohmann_json REQUIRED)
 find_package(asio REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS core widgets gui concurrent)
 target_link_libraries(
   project_dependency
   INTERFACE range-v3::range-v3
