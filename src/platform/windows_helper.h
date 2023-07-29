@@ -13,6 +13,13 @@
 #include <variant>
 #include <vector>
 
+#ifdef _DEBUG
+#define ENABLE_CRT_NEW                                                         \
+  _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#else
+#define ENABLE_CRT_NEW
+#endif
+
 #ifdef NOMINMAX
 #include <windows.h>
 #else
@@ -27,7 +34,7 @@
 #include <cstdlib>
 #include <d3d11.h>
 #include <dxgi.h>
-//#include <ntstatus.h>
+// #include <ntstatus.h>
 #include <versionhelpers.h>
 #include <wbemcli.h>
 
@@ -40,7 +47,9 @@ using query_obj = std::unordered_map<std::string, std::string>;
 // using query_obj = std::variant<std::string, unsigned int>;
 using query_data = std::variant<std::string, unsigned int>;
 
-template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> struct overloaded : Ts... {
+  using Ts::operator()...;
+};
 // explicit deduction guide (not needed as of C++20)
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
