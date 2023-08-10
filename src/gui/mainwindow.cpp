@@ -1,50 +1,39 @@
 #include "mainwindow.h"
-#include <QColorSpace>
-#include <QImageReader>
-#include <QThreadPool>
-#include <QtConcurrent>
-#include <filesystem>
+#include "thumblist_data.h"
 #include "thumblist_model.h"
+#include <QLabel>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+wallchanger::gui::MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent) {
+
   setupUi(this);
 
-  QObject::connect(this, &MainWindow::add_item, this,
-                   &MainWindow::add_to_item_list,Qt::DirectConnection);
-  auto* model = new ThumbListModel(this);
-  m_threadded_add();
-  ImageList->setModel(model);
+  listView->setGridSize({132, 132});
+  listView->setResizeMode(QListView::Adjust);
+  listView->setWrapping(true);
+
+  listView->setModel(new wallchanger::gui::ThumbListModel("D:/wallpaper"));
+  auto *model =
+      qobject_cast<wallchanger::gui::ThumbListModel *>(listView->model());
+  auto *lbl = new QLabel("", this);
+
+  connect(model->get_model_data(),
+          &wallchanger::gui::ThumbListData::image_added, lbl, &QLabel::setText);
+  connect(model, &wallchanger::gui::ThumbListModel::directory_processed,
+          listView, &QListView::reset);
+  connect(listView, &QAbstractItemView::clicked, this,
+          &MainWindow ::m_item_selected);
+
+  statusbar->addWidget(lbl);
 }
 
-MainWindow::~MainWindow() { m_close = true; }
-
-void MainWindow::add_to_item_list(QImage ico, QString name) {
-}
-
-void MainWindow::m_threadded_add() {
-  QFuture<void> fut;
-  auto pool = new QThreadPool();
-  for (auto &&entry : std::filesystem::directory_iterator("D:/wallpaper")) {
-    if (!m_close) {
-      fut = QtConcurrent::run(pool,
-          [this](std::filesystem::directory_entry in_path) {
-            QImage image(in_path.path().string().c_str());
-            QImageReader::setAllocationLimit(1024);
-            auto scaled = image.scaled({64, 64}, Qt::KeepAspectRatio);
-            scaled.convertTo(QImage::Format_ARGB32);
-            QDir thumbdir(QCoreApplication::applicationDirPath() +
-                          "/thumbnails");
-            if (!thumbdir.exists()) {
-              thumbdir.mkdir(QCoreApplication::applicationDirPath() +
-                             "/thumbnails");
-            }
-            scaled.save(thumbdir.path() + "/" +
-                            in_path.path().filename().string().c_str(),
-                        "PNG");
-            emit add_item(scaled, in_path.path().string().c_str());
-          },
-          entry);
-     // fut.waitForFinished();
-    }
-  }
+void wallchanger::gui::MainWindow::m_item_selected(const QModelIndex &index) {
+  auto *model =
+      qobject_cast<wallchanger::gui::ThumbListModel *>(listView->model());
+  auto name = model->get_model_data()->get_data_at(index.row()).first;
+  auto path = model->get_model_data_path();
+  auto pixmap = QPixmap(path + "/" + name);
+  auto *pixmap_label = new QLabel(this);
+  pixmap_label->setPixmap(pixmap);
+  scrollArea->setWidget(pixmap_label);
 }
