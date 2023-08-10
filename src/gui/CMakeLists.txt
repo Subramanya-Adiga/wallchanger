@@ -1,8 +1,6 @@
 include(windeployqt)
 
-add_executable(changer_gui WIN32 gui_main.cpp thumblist_model.h
-                                 thumblist_model.cpp
-                                 thumblist_data.h thumblist_data.cpp)
+add_executable(changer_gui WIN32 gui_main.cpp)
 
 set_target_properties(
   changer_gui
@@ -10,7 +8,17 @@ set_target_properties(
              AUTOUIC ON
              AUTORCC ON)
 
-target_sources(changer_gui PRIVATE mainwindow.cpp mainwindow.h mainwindow.ui)
+target_sources(
+  changer_gui
+  PRIVATE wall_app_gui.h
+          wall_app_gui.cpp
+          mainwindow.cpp
+          mainwindow.h
+          mainwindow.ui
+          thumblist_model.h
+          thumblist_model.cpp
+          thumblist_data.h
+          thumblist_data.cpp)
 
 target_link_libraries(
   changer_gui PRIVATE project_options project_dependency Qt6::Core Qt6::Widgets
