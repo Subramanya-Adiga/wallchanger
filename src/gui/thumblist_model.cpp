@@ -4,15 +4,14 @@
 #include <QPixmap>
 #include <QtConcurrent>
 
-wallchanger::gui::ThumbListModel::ThumbListModel(const QString &path,
-                                                 QObject *parent)
-    : QAbstractListModel(parent),
-      m_data(new wallchanger::gui::ThumbListData()) {
+wallchanger::gui::ThumbListModel::ThumbListModel(QString path, QObject *parent)
+    : QAbstractListModel(parent), m_data(new wallchanger::gui::ThumbListData()),
+      m_data_path(std::move(path)) {
 
   connect(this, &wallchanger::gui::ThumbListModel::thumb_nail_ready, this,
           &wallchanger::gui::ThumbListModel::m_add_data);
 
-  m_set_directory(path.toStdString());
+  m_set_directory(m_data_path.toStdString());
 }
 
 int wallchanger::gui::ThumbListModel::rowCount(
@@ -47,6 +46,10 @@ QVariant wallchanger::gui::ThumbListModel::data(const QModelIndex &index,
 const wallchanger::gui::ThumbListData *
 wallchanger::gui::ThumbListModel::get_model_data() const {
   return m_data.get();
+}
+
+QString wallchanger::gui::ThumbListModel::get_model_data_path() const {
+  return m_data_path;
 }
 
 void wallchanger::gui::ThumbListModel::m_add_data(QString name, QImage image) {
