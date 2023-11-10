@@ -77,4 +77,5 @@ build/*
 .vs/*
 .cache/*
 CMakeLists.txt.user
+CMakeLists.txt.qtds
 compile_commands.json
