@@ -11,6 +11,11 @@ static constexpr int IMG_RES = 256;
 class ThumbListModel : public QAbstractListModel {
   Q_OBJECT
 public:
+  enum Roles {
+    NameRole = Qt::UserRole,
+    PathRole
+  };
+
   explicit ThumbListModel(QString path, QObject *parent = nullptr);
 
   [[nodiscard]] int rowCount(const QModelIndex &parent) const override;
@@ -18,6 +23,7 @@ public:
                               int role) const override;
   [[nodiscard]] const ThumbListData *get_model_data() const;
   [[nodiscard]] QString get_model_data_path() const;
+  [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
 signals:
   void thumb_nail_ready(QString, QImage);

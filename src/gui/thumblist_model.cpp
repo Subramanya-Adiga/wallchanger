@@ -31,6 +31,14 @@ QVariant wallchanger::gui::ThumbListModel::data(const QModelIndex &index,
     return data.first;
   }
 
+  if(role==Roles::NameRole){
+    return data.first;
+  }
+
+  if(role==Roles::PathRole){
+    return m_data_path;
+  }
+
   if (role == Qt::DecorationRole) {
     return QPixmap::fromImage(data.second)
         .scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -50,6 +58,15 @@ wallchanger::gui::ThumbListModel::get_model_data() const {
 
 QString wallchanger::gui::ThumbListModel::get_model_data_path() const {
   return m_data_path;
+}
+
+QHash<int, QByteArray> wallchanger::gui::ThumbListModel::roleNames() const
+{
+  static QHash<int, QByteArray> mapping {
+      {NameRole, "name"},
+      {PathRole, "path"}
+  };
+  return mapping;
 }
 
 void wallchanger::gui::ThumbListModel::m_add_data(QString name, QImage image) {
