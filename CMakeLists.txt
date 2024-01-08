@@ -55,7 +55,15 @@ find_package(sol2 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(nlohmann_json REQUIRED)
 find_package(asio REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS core widgets gui concurrent)
+find_package(
+  Qt6 REQUIRED
+  COMPONENTS core
+             widgets
+             gui
+             concurrent
+             gui
+             quick
+             quickcontrols2)
 target_link_libraries(
   project_dependency
   INTERFACE range-v3::range-v3
