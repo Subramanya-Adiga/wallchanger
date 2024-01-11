@@ -43,14 +43,22 @@ private:
         if (msg.validate()) {
           switch (msg.header.id) {
           case MessageType::Server_GetStatus: {
-            std::cout << message_helper::msg_to_json(msg) << "\n";
+            auto status_msg = message_helper::msg_to_json(msg);
+
+            std::chrono::milliseconds dur = std::chrono::duration<uint64_t>(
+                status_msg["uptime"].get<uint64_t>());
+            std::chrono::time_point<std::chrono::system_clock> dt(dur);
+
+            fmt::print("Connections:{} Uptime:{:%S} \n",
+                       status_msg["connections"].get<size_t>(), dt);
             m_stop_processing = true;
           } break;
           case MessageType::Server_GetPing: {
             auto time_now = std::chrono::system_clock::now();
             auto time_then = msg.time;
-            fmt::print("{}\n", std::chrono::duration_cast<std::chrono::seconds>(
-                                   time_now - time_then));
+            fmt::print("{:%S}\n",
+                       std::chrono::duration_cast<std::chrono::nanoseconds>(
+                           time_now - time_then));
             m_stop_processing = true;
           } break;
           case MessageType::Status_Success: {
