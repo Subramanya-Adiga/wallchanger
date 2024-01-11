@@ -22,7 +22,9 @@ public:
   connection(const connection &) = delete;
   connection &operator=(const connection &) = delete;
 
-  [[nodiscard]] bool is_connected() const { return m_socket.is_open(); }
+  [[nodiscard]] bool is_connected() const {
+    return m_socket.is_open() && m_connected;
+  }
   [[nodiscard]] uint32_t get_id() const { return m_id; }
 
   void connect_to_client(server_interface<T> *server, uint32_t id = 0) {
@@ -41,7 +43,13 @@ public:
           m_socket, endpoint,
           [this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
             if (!ec) {
+              m_connected = true;
               read_header();
+            } else {
+              LOG_ERR(logger_name, "ConnectionError Code:{} {}\n", ec.value(),
+                      ec.message());
+              m_connected = false;
+              disconnect();
             }
           });
     }
@@ -54,13 +62,15 @@ public:
   }
 
   void send_message(const message<T> &msg) {
-    asio::post(m_context, [this, msg]() {
-      bool writing_header = !m_outbound.empty();
-      m_outbound.push_back(msg);
-      if (!writing_header) {
-        write_header();
-      }
-    });
+    if (is_connected()) {
+      asio::post(m_context, [this, msg]() {
+        bool writing_header = !m_outbound.empty();
+        m_outbound.push_back(msg);
+        if (!writing_header) {
+          write_header();
+        }
+      });
+    }
   }
 
 private:
@@ -76,7 +86,8 @@ private:
               add_to_incomming();
             }
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] {}", m_id, ec.message());
+            LOG_ERR(logger_name, "connection id:[{}] ErrorCode:{} {}", m_id,
+                    ec.value(), ec.message());
             m_socket.close();
           }
         });
@@ -89,7 +100,8 @@ private:
           if (!ec) {
             add_to_incomming();
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] {} ", m_id, ec.message());
+            LOG_ERR(logger_name, "connection id:[{}] ErrorCode:{} {} ", m_id,
+                    ec.value(), ec.message());
             m_socket.close();
           }
         });
@@ -110,7 +122,9 @@ private:
               }
             }
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] {} ", m_id, ec.message());
+            LOG_ERR(logger_name,
+                    "Write Header connection id:[{}] ErrorCode:{} {} ", m_id,
+                    ec.value(), ec.message());
             m_socket.close();
           }
         });
@@ -128,7 +142,9 @@ private:
               write_header();
             }
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] {} ", m_id, ec.message());
+            LOG_ERR(logger_name,
+                    "Write Body connection id:[{}] ErrorCode:{} {} ", m_id,
+                    ec.value(), ec.message());
             m_socket.close();
           }
         });
@@ -151,5 +167,6 @@ protected:
   message<T> m_temp_in;
   uint32_t m_id{};
   owner m_owner;
+  bool m_connected = false;
 };
 } // namespace wallchanger::net
