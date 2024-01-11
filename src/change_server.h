@@ -19,6 +19,11 @@ public:
   explicit change_server(uint16_t port)
       : net::server_interface<MessageType>(port) {
     m_start_time = std::chrono::system_clock::now();
+    auto now_minutes =
+        std::chrono::time_point_cast<std::chrono::seconds>(m_start_time);
+    auto epoch = now_minutes.time_since_epoch();
+    auto value = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+    uint64_t m_start_64_time = value.count();
   }
 
   void store_state() { m_cache.serialize(); }
@@ -198,11 +203,15 @@ protected:
                client->get_id());
       nlohmann::json ret;
       ret["connections"] = m_connections.size();
+
       auto time_now = std::chrono::system_clock::now();
-      ret["uptime"] = std::chrono::time_point<std::chrono::system_clock>(
-                          time_now - m_start_time)
-                          .time_since_epoch()
-                          .count();
+      auto now_minutes =
+          std::chrono::time_point_cast<std::chrono::seconds>(time_now);
+      auto epoch = now_minutes.time_since_epoch();
+      auto value = std::chrono::duration_cast<std::chrono::seconds>(epoch);
+      uint64_t cur_dur = value.count();
+
+      ret["uptime"] = cur_dur - m_start_64_time;
       client->send_message(
           message_helper::json_to_msg(MessageType::Server_GetStatus, ret));
     } break;
@@ -230,6 +239,7 @@ protected:
 
 private:
   std::chrono::time_point<std::chrono::system_clock> m_start_time;
+  uint64_t m_start_64_time{};
   wallchanger::cache_lib m_cache;
   std::vector<nlohmann::json> m_previous;
   std::string m_active;
