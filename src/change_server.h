@@ -17,13 +17,13 @@ namespace wallchanger {
 class change_server : public net::server_interface<MessageType> {
 public:
   explicit change_server(uint16_t port)
-      : net::server_interface<MessageType>(port) {
+      : net::server_interface<MessageType>(port), m_cache(true) {
     m_start_time = std::chrono::system_clock::now();
     auto now_minutes =
         std::chrono::time_point_cast<std::chrono::seconds>(m_start_time);
     auto epoch = now_minutes.time_since_epoch();
     auto value = std::chrono::duration_cast<std::chrono::seconds>(epoch);
-    uint64_t m_start_64_time = value.count();
+    m_start_64_time = value.count();
   }
 
   void store_state() { m_cache.serialize(); }

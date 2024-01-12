@@ -1,6 +1,4 @@
 #pragma once
-#include <compare>
-#include <concepts>
 /**
  * @file wall_cache.h
  * Implementaion Of Key Value Based Flat Map Type Of Container With
@@ -21,7 +19,7 @@ enum class cache_state_e : uint32_t {
 template <typename Key, typename Value> struct cache_type_struct {
   Key cache_key;                 ///< Cache Key
   Value cache_value;             ///< Cache Value
-  cache_state_e cache_state;     ///< Cache State
+  cache_state_e cache_state{};   ///< Cache State
   cache_type_struct() = default; ///< Default Constructor
   /**
    * @brief Explicit Constructor
@@ -156,11 +154,19 @@ public:
   [[nodiscard]] iterator begin() noexcept { return std::begin(m_cache_vec); }
   [[nodiscard]] iterator end() noexcept { return std::end(m_cache_vec); }
 
-  [[nodiscard]] const_iterator begin() const noexcept { return begin(); }
-  [[nodiscard]] const_iterator end() const noexcept { return end(); }
+  [[nodiscard]] const_iterator begin() const noexcept {
+    return std::cbegin(m_cache_vec);
+  }
+  [[nodiscard]] const_iterator end() const noexcept {
+    return std::cend(m_cache_vec);
+  }
 
-  [[nodiscard]] const_iterator cbegin() const noexcept { return begin(); }
-  [[nodiscard]] const_iterator cend() const noexcept { return end(); }
+  [[nodiscard]] const_iterator cbegin() const noexcept {
+    return std::cbegin(m_cache_vec);
+  }
+  [[nodiscard]] const_iterator cend() const noexcept {
+    return std::cend(m_cache_vec);
+  }
 
   [[nodiscard]] reverse_iterator rbegin() noexcept {
     return std::rbegin(m_cache_vec);

@@ -19,7 +19,7 @@ TEST_CASE("Library Construction", "[cahce lib construct]") {
 
   auto lib3(std::move(lib1));
   REQUIRE(lib3 != lib1);
-  REQUIRE(lib1.empty() == true);
+  REQUIRE(lib1.is_empty() == true);
 }
 
 TEST_CASE("Library Functionality", "[cache lib function]") {
@@ -34,7 +34,7 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     lib.insert("cache1"s, "~"s, cache);
     lib.insert("cache2"s, "~"s, cache2);
     REQUIRE(lib.modified() == true);
-    REQUIRE(lib.empty() == false);
+    REQUIRE(lib.is_empty() == false);
   }
   SECTION("exists") {
     wallchanger::cache_lib lib;
@@ -48,7 +48,7 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     lib.insert("cache1", "~", cache);
     lib.insert("cache2", "~", cache2);
     REQUIRE(lib.get_cache("cache2").empty() == true);
-    REQUIRE(lib["cache1"].empty() == false);
+    REQUIRE(lib.get_cache("cache1").empty() == false);
   }
   SECTION("erase") {
     wallchanger::cache_lib lib;
@@ -61,7 +61,8 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     wallchanger::cache_lib lib;
     lib.insert("cache1", "~", cache);
     lib.insert("cache2", "~", cache2);
-    auto lib55 = lib["cache1"];
+    auto lib55 = lib.get_cache("cache1");
+    lib.change_active("cache1");
     REQUIRE(lib.get_current().name == "cache1");
   }
 }

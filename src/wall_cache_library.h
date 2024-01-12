@@ -1,6 +1,5 @@
 #pragma once
 #include "wall_cache.h"
-#include <compare>
 
 namespace wallchanger {
 template <typename T> struct cache_store_t {
@@ -23,7 +22,8 @@ class cache_lib {
 
 public:
   using cache_lib_type = cache_type;
-  cache_lib();
+  cache_lib() = default;
+  explicit cache_lib(bool load);
 
   void insert(std::string name, std::string path,
               cache_lib_type value) noexcept;
@@ -32,26 +32,30 @@ public:
   [[nodiscard]] std::string_view
   get_cache_path(std::string_view name) const noexcept;
   [[nodiscard]] cache_store get_current() const noexcept;
+  [[nodiscard]] std::string get_current_name() const noexcept;
 
   void change_active(std::string_view new_active) noexcept;
-  void rename_store(std::string_view from, std::string_view to) noexcept;
+  void rename_store(std::string_view from_name,
+                    std::string_view to_name) noexcept;
 
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t capacity() const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 
   void remove(std::string_view name) noexcept;
-  [[nodiscard]] bool empty() const noexcept;
+  [[nodiscard]] bool is_empty() const noexcept;
   [[nodiscard]] bool modified() const noexcept;
 
   [[nodiscard]] std::vector<std::string> cache_list() const noexcept;
 
-  [[nodiscard]] cache_lib_type &operator[](std::string_view name) noexcept {
-    m_clear_empty();
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
-    m_current = *rng_it;
-    return m_current.cache;
-  }
+  // [[nodiscard]] cache_lib_type &operator[](std::string_view name) noexcept {
+  //   m_clear_empty();
+  //   if (exists(name)) {
+  //     auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
+  //     return rng_it->cache;
+  //   }
+  //   return m_cache_vec.at(0).cache;
+  // }
 
   auto operator<=>(const cache_lib &) const = default;
 
@@ -61,7 +65,7 @@ public:
 private:
   std::string m_active_name;
   inline void m_clear_empty() noexcept {
-    if (!empty()) {
+    if (!is_empty()) {
       ranges::actions::drop_while(
           m_cache_vec, [](auto &type) { return type.cache.empty(); });
     }
