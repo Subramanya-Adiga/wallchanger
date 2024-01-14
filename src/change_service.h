@@ -9,7 +9,8 @@ class change_service : public platform::win32::service_base {
   static constexpr std::string_view logger_name = "service_logger";
 
 public:
-  change_service() : service_base("My Change"), m_server(60000) {
+  change_service()
+      : service_base("My Change"), m_server(helper::s_port_number) {
     LOGGER_CREATE(logger_name);
     auto path = std::filesystem::path(log_directory()) /
                 std::filesystem::path(logger_name);

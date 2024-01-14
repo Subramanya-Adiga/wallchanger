@@ -61,7 +61,7 @@ public:
 
             if (on_client_connect(new_con)) {
               m_connections.push_back(std::move(new_con));
-              m_connections.back()->connect_to_client(this, m_id++);
+              m_connections.back()->connect_to_client(this, helper::gen_id());
               LOG_INFO(logger_name, "connection accepted id:{}",
                        m_connections.back()->get_id());
 
@@ -144,7 +144,5 @@ protected:
   asio::io_context m_context;
   std::thread m_execution_thread;
   asio::ip::tcp::acceptor m_acceptor;
-
-  uint32_t m_id = 10000;
 };
 } // namespace wallchanger::net

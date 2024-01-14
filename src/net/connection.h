@@ -30,6 +30,7 @@ public:
   void connect_to_client(server_interface<T> *server, uint32_t id = 0) {
     if (m_owner == owner::server) {
       if (m_socket.is_open()) {
+        m_connected = true;
         m_id = id;
         read_header();
       }
@@ -57,6 +58,7 @@ public:
 
   void disconnect() {
     if (is_connected()) {
+      m_connected = false;
       asio::post(m_context, [this]() { m_socket.close(); });
     }
   }
@@ -86,9 +88,10 @@ private:
               add_to_incomming();
             }
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] ErrorCode:{} {}", m_id,
+            disconnect();
+            LOG_ERR(logger_name,
+                    "Read Header connection id:[{}] ErrorCode:{} {}", m_id,
                     ec.value(), ec.message());
-            m_socket.close();
           }
         });
   }
@@ -100,9 +103,10 @@ private:
           if (!ec) {
             add_to_incomming();
           } else {
-            LOG_ERR(logger_name, "connection id:[{}] ErrorCode:{} {} ", m_id,
+            disconnect();
+            LOG_ERR(logger_name,
+                    "Read Body connection id:[{}] ErrorCode:{} {} ", m_id,
                     ec.value(), ec.message());
-            m_socket.close();
           }
         });
   }
@@ -122,10 +126,10 @@ private:
               }
             }
           } else {
+            disconnect();
             LOG_ERR(logger_name,
                     "Write Header connection id:[{}] ErrorCode:{} {} ", m_id,
                     ec.value(), ec.message());
-            m_socket.close();
           }
         });
   }
@@ -142,10 +146,10 @@ private:
               write_header();
             }
           } else {
+            disconnect();
             LOG_ERR(logger_name,
                     "Write Body connection id:[{}] ErrorCode:{} {} ", m_id,
                     ec.value(), ec.message());
-            m_socket.close();
           }
         });
   }
