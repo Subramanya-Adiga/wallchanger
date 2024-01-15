@@ -4,7 +4,6 @@
 #include "scoped_timer.h"
 
 #ifdef _WINDOWS
-#include "platform/windows_helper.h"
 #include <windows.h>
 #endif
 

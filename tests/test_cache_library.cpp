@@ -1,6 +1,6 @@
-#include "../src/wall_cache.h"
+#include <wall_cache.h>
+#include <wall_cache_library.h>
 #define CATCH_CONFIG_MAIN
-#include "../src/wall_cache_library.cpp"
 #include <catch2/catch_all.hpp>
 
 TEST_CASE("Library Construction", "[cahce lib construct]") {

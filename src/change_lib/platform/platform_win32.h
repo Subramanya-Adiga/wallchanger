@@ -2,6 +2,7 @@
 #include "../wall_background.h"
 #include <Shobjidl.h>
 #include <gdiplus.h>
+
 #pragma comment(lib, "Gdiplus.lib")
 
 static std::string format_asci(const Gdiplus::PropertyItem &item) {

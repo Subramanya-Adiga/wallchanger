@@ -1,11 +1,10 @@
 #pragma once
 #include "message_type.h"
-#include "net/server_interface.h"
-#include "wall_cache.h"
-#include "wall_cache_library.h"
+#include <net/server_interface.h>
 #include <nlohmann/json.hpp>
 #include <random>
-
+#include <wall_cache.h>
+#include <wall_cache_library.h>
 
 namespace wallchanger {
 

@@ -1,9 +1,10 @@
 #pragma once
 #include "message_type.h"
-#include "net/client_interface.h"
 #include "platform/platform_win32.h"
 #include "wall_background.h"
 #include <fmt/chrono.h>
+#include <net/client_interface.h>
+
 
 namespace wallchanger {
 class change_client : public net::client_interface<MessageType> {

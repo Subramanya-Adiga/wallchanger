@@ -1,7 +1,6 @@
 #pragma once
 #include "change_server.h"
-#include "log.h"
-#include "platform/win32_service.h"
+#include <platform/win32_service.h>
 
 namespace wallchanger {
 
