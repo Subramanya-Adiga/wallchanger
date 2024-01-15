@@ -2,8 +2,10 @@
 #include "message_type.h"
 #include "net/server_interface.h"
 #include "wall_cache.h"
+#include "wall_cache_library.h"
 #include <nlohmann/json.hpp>
 #include <random>
+
 
 namespace wallchanger {
 

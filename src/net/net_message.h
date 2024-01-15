@@ -1,5 +1,5 @@
 #pragma once
-
+#include "net_common.h"
 namespace wallchanger::net {
 
 template <typename T> struct message_header {
@@ -55,7 +55,7 @@ template <typename T> struct message {
 
       msg.body.resize(i);
 
-      msg.header.size = msg.body.size();
+      msg.header.size = static_cast<uint32_t>(msg.body.size());
     }
 
     return msg;

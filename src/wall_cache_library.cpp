@@ -1,6 +1,8 @@
 #include "wall_cache_library.h"
+#include "json_helper.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
+
 
 wallchanger::cache_lib::cache_lib(bool load) {
   if (load) {
