@@ -1,10 +1,10 @@
 #pragma once
 #include "message_type.h"
-#include "platform/platform_win32.h"
+// #include "platform/platform_win32.h" Used To Get Information About Wallpaper
+// Image
 #include "wall_background.h"
 #include <fmt/chrono.h>
 #include <net/client_interface.h>
-
 
 namespace wallchanger {
 class change_client : public net::client_interface<MessageType> {
@@ -105,9 +105,9 @@ private:
       } break;
       case MessageType::Get_Current: {
         auto obj = message_helper::msg_to_json(msg);
-        wallchanger::platform::win32::get_image_information info(
-            obj["path"].get<std::string>() + "/" +
-            obj["wallpaper"].get<std::string>());
+        // wallchanger::platform::win32::get_image_information info(
+        //     obj["path"].get<std::string>() + "/" +
+        //     obj["wallpaper"].get<std::string>());
         msg_processed = true;
       } break;
       case MessageType::List_Collections: {

@@ -1,6 +1,21 @@
 #include "platform_linux.h"
 
-bool wallchanger::platform::linux::background::set_wallpaper(
-    std::string_view filename, std::string_view position) const {
-  return false;
+namespace wallchanger::platform {
+
+bool linux::linux_background_handler::is_active() { return true; }
+
+bool linux::linux_background_handler::set_background_color(
+    unsigned long color) {
+  return true;
 }
+
+bool linux::linux_background_handler::set_wallpaper(std::string_view wallpaper,
+                                                    int position) {
+  return true;
+}
+
+std::string linux::linux_background_handler::get_error() const {
+  return m_error;
+}
+
+} // namespace wallchanger::platform

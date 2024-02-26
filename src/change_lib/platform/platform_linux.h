@@ -1,15 +1,17 @@
 #pragma once
-#include "../../pch.h"
+#include "../wall_background.h"
 
 namespace wallchanger::platform::linux {
 
-class background {
-  bool m_initialized = false;
-  bool m_valid_instance = false;
-
+class linux_background_handler : public wallchanger::background_handler {
 public:
-  [[nodiscard]] bool set_wallpaper(std::string_view filename,
-                                   std::string_view position) const;
-  [[nodiscard]] bool set_color(std::string_view color) const;
+  linux_background_handler() = default;
+  ~linux_background_handler() override = default;
+  [[nodiscard]] bool is_active() override;
+  [[nodiscard]] bool set_wallpaper(std::string_view wallpaper,
+                                   int position) override;
+  [[nodiscard]] bool set_background_color(unsigned long color) override;
+  [[nodiscard]] std::string get_error() const;
 };
+
 } // namespace wallchanger::platform::linux

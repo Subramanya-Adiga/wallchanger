@@ -1,3 +1,4 @@
+#ifdef _WINDOWS
 #include "change_service.h"
 
 #ifdef _DEBUG
@@ -18,3 +19,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
 #endif
   return 0;
 }
+#endif
+
+#ifdef __linux__
+int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) { return 0; }
+#endif

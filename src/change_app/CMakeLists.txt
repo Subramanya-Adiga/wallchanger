@@ -6,10 +6,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL
   target_link_options(changer PRIVATE /LTCG)
 endif()
 
-target_sources(changer PRIVATE wall_app.cpp wall_app.h)
-
-if(WIN32)
-  target_sources(changer PRIVATE change_client.h)
-endif()
+target_sources(changer PRIVATE wall_app.cpp wall_app.h change_client.h)
 
 target_link_libraries(changer PRIVATE change_lib)
