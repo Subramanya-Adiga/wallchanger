@@ -12,9 +12,9 @@ wallchanger::application::application(std::span<char *> args) {
   });
 
   // Loop To Add Appropriate Commandline Arguments To commandgroup
-  for (auto &&[group_name, commandline] : m_cmds) {
+  for (auto &&[group_name, command_line] : m_cmds) {
     auto group = ranges::find(m_group_vec, group_name, &commandgroup::first);
-    ranges::for_each(commandline, [&](auto &data) {
+    ranges::for_each(command_line, [&](auto &data) {
       if (std::get<value>(data) != nullptr) {
         group->second.add_options()(std::get<cmd>(data).data(),
                                     std::get<value>(data),
@@ -53,7 +53,7 @@ int wallchanger::application::run() {
     // subrange to exclude first subcommand
     auto command_range =
         ranges::make_subrange(m_group_name.begin() + 1, m_group_name.end());
-    fmt::print("\nAvaliable commands: {}", fmt::join(command_range, " , "));
+    fmt::print("\nAvaliable commands: {}\n", fmt::join(command_range, " , "));
   }
 
   if (m_option_map.count("version") != 0U) {
@@ -112,16 +112,17 @@ int wallchanger::application::run() {
   return 0;
 }
 
-void wallchanger::application::m_process_commands(subcommand_e cmd) {
+void wallchanger::application::m_process_commands(subcommand_e sub_cmd) {
   auto options = po::collect_unrecognized(m_parsed_options->options,
                                           po::include_positional);
   options.erase(options.begin());
-  po::store(
-      po::command_line_parser(options).options(m_group_vec[cmd].second).run(),
-      m_option_map);
+  po::store(po::command_line_parser(options)
+                .options(m_group_vec[sub_cmd].second)
+                .run(),
+            m_option_map);
 
   if (m_option_map.count("help") != 0U) {
-    ranges::for_each(m_group_vec[cmd].second.options(), [](auto data) {
+    ranges::for_each(m_group_vec[sub_cmd].second.options(), [](auto data) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
                  data->description());
     });

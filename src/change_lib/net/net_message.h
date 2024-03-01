@@ -14,7 +14,8 @@ template <typename T> struct message {
   std::vector<uint8_t> body{};
 
   void finalize() {
-    header.hash = wallchanger::helper::crc(body.begin(), body.end());
+    header.hash = static_cast<uint32_t>(
+        wallchanger::helper::crc(body.begin(), body.end()));
     header.size = static_cast<uint32_t>(body.size());
     time = std::chrono::system_clock::now();
   }
@@ -26,14 +27,14 @@ template <typename T> struct message {
 
   template <typename DataType>
   friend message<T> &operator<<(message<T> &msg, const DataType &data) {
-    static_assert(std::is_standard_layout<DataType>::value,
+    static_assert(std::is_standard_layout_v<DataType>,
                   "Data is too complex to be pushed into vector");
 
-    size_t i = msg.body.size();
+    size_t body_size = msg.body.size();
 
     msg.body.resize(msg.body.size() + sizeof(DataType));
 
-    std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+    std::memcpy(msg.body.data() + body_size, &data, sizeof(DataType));
 
     msg.header.size = static_cast<uint32_t>(msg.body.size());
 
@@ -46,14 +47,14 @@ template <typename T> struct message {
   template <typename DataType>
   friend message<T> &operator>>(message<T> &msg, DataType &data) {
 
-    static_assert(std::is_standard_layout<DataType>::value,
+    static_assert(std::is_standard_layout_v<DataType>,
                   "Data is too complex to be pulled from vector");
     if (msg.validate()) {
-      size_t i = msg.body.size() - sizeof(DataType);
+      auto body_size = msg.body.size() - sizeof(DataType);
 
-      std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
+      std::memcpy(&data, msg.body.data() + body_size, sizeof(DataType));
 
-      msg.body.resize(i);
+      msg.body.resize(body_size);
 
       msg.header.size = static_cast<uint32_t>(msg.body.size());
     }
