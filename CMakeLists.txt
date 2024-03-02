@@ -54,11 +54,16 @@ find_package(sol2 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(nlohmann_json REQUIRED)
 find_package(asio REQUIRED)
+find_package(Lua REQUIRED)
+
+target_include_directories(project_dependency INTERFACE ${LUA_INCLUDE_DIR})
+
 target_link_libraries(
   project_dependency
   INTERFACE range-v3::range-v3
             fmt::fmt-header-only
             sol2
+            ${LUA_LIBRARIES}
             spdlog::spdlog_header_only
             Boost::program_options
             nlohmann_json::nlohmann_json

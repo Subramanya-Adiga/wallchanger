@@ -10,6 +10,7 @@
     "boost-program-options",
     "benchmark",
     "nlohmann-json",
-    "asio"
+    "asio",
+    "lua"
   ]
 }
