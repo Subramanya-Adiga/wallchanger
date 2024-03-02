@@ -22,19 +22,26 @@ public:
   void set_pattern(std::string_view name, std::string_view pattern) {
     auto rng_it = ranges::find_if(
         log_vec_, [&](auto &logger) { return (logger->name() == name); });
-    rng_it->get()->set_pattern(pattern.data());
+    if (rng_it != ranges::end(log_vec_)) {
+      rng_it->get()->set_pattern(pattern.data());
+    }
   }
   std::shared_ptr<spdlog::logger> get_logger(std::string_view name) {
     auto rng_it = ranges::find_if(
         log_vec_, [&](auto &logger) { return (logger->name() == name); });
-    return *rng_it;
+    if (rng_it != ranges::end(log_vec_)) {
+      return *rng_it;
+    }
+    return {};
   }
   void add_file_sink(std::string_view name, std::string_view file_name) {
-    auto file_sink =
-        std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name.data());
     auto rng_it = ranges::find_if(
         log_vec_, [&](auto &logger) { return (logger->name() == name); });
-    rng_it->get()->sinks().push_back(file_sink);
+    if (rng_it != ranges::end(log_vec_)) {
+      auto file_sink =
+          std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name.data());
+      rng_it->get()->sinks().push_back(file_sink);
+    }
   }
   static logger &get_instance() {
     static logger instance_;
