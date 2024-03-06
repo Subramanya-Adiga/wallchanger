@@ -8,7 +8,7 @@ TEST_CASE("Cache Construction", "[cache construct]") {
   REQUIRE(cache.capacity() == std::numeric_limits<char>::max());
 
   wallchanger::cache<int, std::string> cache2(5);
-  cache2.insert(0, "hello"s);
+  cache2.insert(0, "hello"s, 0);
   REQUIRE(cache2.get(0) == "hello"s);
   REQUIRE(cache2.capacity() == 5);
 
@@ -29,29 +29,29 @@ TEST_CASE("Cache Functionality Tests", "[cache function]") {
   REQUIRE(cache.capacity() == 5);
 
   SECTION("Insection") {
-    cache.insert(0, "hello world"s);
+    cache.insert(0, "hello world"s, 0);
     REQUIRE(cache.get(0) == "hello world"s);
     REQUIRE_FALSE(cache.empty());
     REQUIRE(cache.exists(0));
   }
   SECTION("Replace") {
-    cache.insert(0, "hello world"s);
+    cache.insert(0, "hello world"s, 0);
     cache.replace(0, "hello world!"s);
     CHECK(cache.get(0) == "hello world!");
     REQUIRE(cache.empty() == false);
     REQUIRE(cache.modified());
   }
   SECTION("Erase") {
-    cache.insert(0, "hello world"s);
+    cache.insert(0, "hello world"s, 0);
     REQUIRE_FALSE(cache.empty());
     cache.erase(0);
     REQUIRE(cache.empty() == true);
     REQUIRE(cache.modified() == true);
   }
   SECTION("State Change") {
-    cache.insert(0, "hello world"s);
-    cache.insert(1, "hello world"s);
-    cache.insert(2, "hello world"s);
+    cache.insert(0, "hello world"s, 0);
+    cache.insert(1, "hello world"s, 0);
+    cache.insert(2, "hello world"s, 0);
 
     cache.set_state(0, wallchanger::cache_state_e::unused);
     cache.set_state(1, wallchanger::cache_state_e::favorate);

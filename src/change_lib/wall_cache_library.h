@@ -1,16 +1,14 @@
 #pragma once
+#include "path_table.h"
 #include "wall_cache.h"
 
 namespace wallchanger {
 template <typename T> struct cache_store_t {
   std::string name;
-  std::string path;
   T cache;
   cache_store_t() = default;
-  explicit cache_store_t(std::string cache_name, std::string cache_path,
-                         T content)
-      : name(std::move(cache_name)), path(std::move(cache_path)),
-        cache(std::forward<T>(content)) {}
+  explicit cache_store_t(std::string cache_name, T content)
+      : name(std::move(cache_name)), cache(std::forward<T>(content)) {}
   auto operator<=>(const cache_store_t &) const = default;
 };
 
@@ -31,6 +29,7 @@ public:
   [[nodiscard]] cache_lib_type get_cache(std::string_view name) const noexcept;
   [[nodiscard]] std::string_view
   get_cache_path(std::string_view name) const noexcept;
+  [[nodiscard]] std::string cache_retrive_path(uint32_t id) const noexcept;
   [[nodiscard]] cache_store get_current() const noexcept;
   [[nodiscard]] std::string get_current_name() const noexcept;
 
@@ -64,6 +63,7 @@ public:
 
 private:
   std::string m_active_name;
+  path_table m_table;
   inline void m_clear_empty() noexcept {
     if (!is_empty()) {
       ranges::actions::drop_while(

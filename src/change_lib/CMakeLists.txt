@@ -2,13 +2,15 @@ add_library(change_lib STATIC)
 
 target_sources(
   change_lib
-  PRIVATE wall_cache_library.cpp wall_background.cpp json_helper.h
+  PRIVATE wall_cache_library.cpp wall_background.cpp path_table.cpp
+          json_helper.h
   PUBLIC FILE_SET
          headers
          TYPE
          HEADERS
          FILES
          message_type.h
+         path_table.h
          wall_cache_library.h
          wall_cache.h
          wall_background.h
@@ -44,12 +46,5 @@ if(LINUX)
   set_target_properties(change_lib PROPERTIES PUBLIC_HEADER
                                               platform/platform_linux.h)
 endif()
-
-set_target_properties(
-  change_lib
-  PROPERTIES PUBLIC_HEADER wall_cache_library.h
-             wall_cache.h net/net_common.h
-             net/connect_queue.h net/connection.h
-             net/client_interface.h net/server_interface.h)
 
 target_link_libraries(change_lib PUBLIC project_options project_dependency)

@@ -2,14 +2,14 @@
 #include <filesystem>
 #include <wall_cache.h>
 
-
 static void BM_SomeFunction(benchmark::State &state) {
   wallchanger::cache<int, std::string> cache;
   int i = 0;
   for (auto _ : state) {
     cache = wallchanger::cache<int, std::string>();
     for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-      cache.insert(i, std::forward<std::string>(x.path().filename().string()));
+      cache.insert(i, std::forward<std::string>(x.path().filename().string()),
+                   0);
       i++;
     }
   }
@@ -23,7 +23,7 @@ static void BM_SomeFunction_MOVE(benchmark::State &state) {
   for (auto _ : state) {
     cache = wallchanger::cache<int, std::string>();
     for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-      cache.insert(i, x.path().filename().string());
+      cache.insert(i, x.path().filename().string(), 0);
       i++;
     }
   }
