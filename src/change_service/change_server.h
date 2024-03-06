@@ -1,5 +1,6 @@
 #pragma once
 #include "message_type.h"
+#include <fstream>
 #include <net/server_interface.h>
 #include <nlohmann/json.hpp>
 #include <random>
@@ -15,7 +16,20 @@ public:
     m_start_time = std::chrono::system_clock::now();
   }
 
-  void store_state() { m_cache.serialize(); }
+  void store_state() {
+    if (!m_previous.empty()) {
+      std::ofstream hist(data_directory() + "/data/history.json",
+                         std::ios::out);
+      nlohmann::json obj;
+      auto obj_arr = nlohmann::json::array();
+      for (auto &&elem : m_previous) {
+        obj_arr.push_back(elem);
+      }
+      obj["histoy"] = obj_arr;
+      hist << std::setw(4) << obj << "\n";
+    }
+    m_cache.serialize();
+  }
 
 protected:
   bool on_client_connect(
