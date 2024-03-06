@@ -22,7 +22,8 @@ struct adl_serializer<wallchanger::cache_type_struct<key, value>> {
                       const wallchanger::cache_type_struct<key, value> &rhs) {
     serialize_obj = nlohmann::json{{"key", rhs.cache_key},
                                    {"value", rhs.cache_value},
-                                   {"state", rhs.cache_state}};
+                                   {"state", rhs.cache_state},
+                                   {"loc", rhs.loc}};
   }
 
   static void from_json(const json &serialize_obj,
@@ -31,6 +32,7 @@ struct adl_serializer<wallchanger::cache_type_struct<key, value>> {
       rhs.cache_key = serialize_obj.at("key");
       rhs.cache_value = serialize_obj.at("value");
       rhs.cache_state = serialize_obj.at("state");
+      rhs.loc = serialize_obj.at("loc");
     }
   }
 };
@@ -47,7 +49,8 @@ struct adl_serializer<wallchanger::cache<key, value>> {
       for (auto &&cache_obj : rhs) {
         arr.push_back(nlohmann::json{{"key", cache_obj.cache_key},
                                      {"value", cache_obj.cache_value},
-                                     {"state", cache_obj.cache_state}});
+                                     {"state", cache_obj.cache_state},
+                                     {"loc", cache_obj.loc}});
       }
       serialize_obj = arr;
     }
@@ -58,7 +61,8 @@ struct adl_serializer<wallchanger::cache<key, value>> {
     if (!serialize_obj.is_null()) {
       rhs.clear();
       for (auto &&obj : serialize_obj) {
-        rhs.insert(obj["key"].get<key>(), obj["value"].get<value>());
+        rhs.insert(obj["key"].get<key>(), obj["value"].get<value>(),
+                   obj["loc"].get<uint32_t>());
         rhs.set_state(obj["key"].get<key>(), obj["state"]);
       }
     }
@@ -68,15 +72,13 @@ struct adl_serializer<wallchanger::cache<key, value>> {
 template <typename T> struct adl_serializer<wallchanger::cache_store_t<T>> {
   static void to_json(json &serialize_obj,
                       const wallchanger::cache_store_t<T> &rhs) {
-    serialize_obj = nlohmann::json{
-        {"Name", rhs.name}, {"Path", rhs.path}, {"Store", rhs.cache}};
+    serialize_obj = nlohmann::json{{"Name", rhs.name}, {"Store", rhs.cache}};
   }
 
   static void from_json(const json &serialize_obj,
                         wallchanger::cache_store_t<T> &rhs) {
     if (!serialize_obj.is_null()) {
       rhs.name = serialize_obj.at("Name");
-      rhs.path = serialize_obj.at("Path");
       rhs.cache = serialize_obj["Store"].get<T>();
     }
   }

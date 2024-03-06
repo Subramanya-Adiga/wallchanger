@@ -17,9 +17,10 @@ enum class cache_state_e : uint32_t {
 
 /// Representation Of Cache Item
 template <typename Key, typename Value> struct cache_type_struct {
-  Key cache_key;                 ///< Cache Key
-  Value cache_value;             ///< Cache Value
-  cache_state_e cache_state{};   ///< Cache State
+  Key cache_key;               ///< Cache Key
+  Value cache_value;           ///< Cache Value
+  cache_state_e cache_state{}; ///< Cache State
+  uint32_t loc{};
   cache_type_struct() = default; ///< Default Constructor
   /**
    * @brief Explicit Constructor
@@ -28,9 +29,10 @@ template <typename Key, typename Value> struct cache_type_struct {
    * @param state1
    */
   explicit cache_type_struct(Key cache_key1, Value cache_value1,
-                             cache_state_e state1)
+                             cache_state_e state1, uint32_t loc)
       : cache_key(std::move(cache_key1)),
-        cache_value(std::forward<Value>(cache_value1)), cache_state(state1) {}
+        cache_value(std::forward<Value>(cache_value1)), cache_state(state1),
+        loc(loc) {}
   /// Threeway Comparator Operator
   auto operator<=>(const cache_type_struct &) const = default;
 };
@@ -72,12 +74,12 @@ public:
    *  @details Insert Value Of Val with Assosiated Key Into Container
    */
   template <typename val>
-  void insert(key_type key, val &&value)
+  void insert(key_type key, val &&value, uint32_t loc)
     requires std::same_as<val, Value>
   {
     if (!exists(key)) {
       m_cache_vec.emplace_back(std::move(key), std::forward<val>(value),
-                               cache_state_e::unused);
+                               cache_state_e::unused, loc);
       m_modified = true;
     }
   }
@@ -139,6 +141,10 @@ public:
     return static_cast<cache_state_e>(it_rng->cache_state);
   }
 
+  [[nodiscard]] uint32_t get_loc_id(key_type key) const noexcept {
+    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
+    return it_rng->loc;
+  }
   // Refrences
   reference front() noexcept { return m_cache_vec.front(); }
   reference back() noexcept { return m_cache_vec.back(); }

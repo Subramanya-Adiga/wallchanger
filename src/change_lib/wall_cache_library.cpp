@@ -21,7 +21,8 @@ wallchanger::cache_lib::cache_lib(bool load) {
 void wallchanger::cache_lib::insert(std::string name, std::string path,
                                     cache_lib_type value) noexcept {
   if (!exists(name)) {
-    m_cache_vec.emplace_back(std::move(name), std::move(path),
+    m_table.insert(std::move(path));
+    m_cache_vec.emplace_back(std::move(name),
                              std::forward<cache_lib_type>(value));
   }
 }
@@ -89,9 +90,14 @@ std::string_view
 wallchanger::cache_lib::get_cache_path(std::string_view name) const noexcept {
   if (exists(name)) {
     auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
-    return rng_it->path;
+    return {};
   }
   return {};
+}
+
+std::string
+wallchanger::cache_lib::cache_retrive_path(uint32_t id) const noexcept {
+  return m_table.get(id).string();
 }
 
 bool wallchanger::cache_lib::modified() const noexcept {
@@ -136,6 +142,7 @@ void wallchanger::cache_lib::serialize() const {
     if (obj_file.good()) {
       obj_file << std::setw(4) << obj << "\n";
     }
+    m_table.store();
   }
 }
 

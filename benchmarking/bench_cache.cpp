@@ -12,7 +12,7 @@ TEST_CASE("Cache") {
       cache = wallchanger::cache<int, std::string>();
       int i = 0;
       for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-        cache.insert(i, x.path().filename().string());
+        cache.insert(i, x.path().filename().string(), 0);
         i++;
       }
     });
@@ -25,8 +25,8 @@ TEST_CASE("Cache") {
       cache = wallchanger::cache<int, std::string>();
       int i = 0;
       for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-        cache.insert(i,
-                     std::forward<std::string>(x.path().filename().string()));
+        cache.insert(i, std::forward<std::string>(x.path().filename().string()),
+                     0);
         i++;
       }
     });

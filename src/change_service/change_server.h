@@ -62,9 +62,10 @@ protected:
         }
       }
 
+      uint32_t path_loc = cache.get_loc_id(idx);
       nlohmann::json send;
       send["wallpaper"] = ret;
-      send["path"] = m_cache.get_cache_path(m_active);
+      send["path"] = m_cache.cache_retrive_path(path_loc);
       send["index"] = idx;
       send["collection"] = m_active;
       m_previous.push_back(send);
@@ -135,12 +136,13 @@ protected:
 
       wallchanger::cache_lib::cache_lib_type cache;
       auto col_path = server_cmd["col_path"].get<std::string>();
-
+      auto crc_loc = static_cast<uint32_t>(
+          wallchanger::helper::crc(col_path.begin(), col_path.end()));
       int counter = 0;
       auto inserter = [&](const std::filesystem::directory_entry &path) {
         if (!path.is_directory()) {
           counter++;
-          cache.insert(counter, path.path().filename().string());
+          cache.insert(counter, path.path().filename().string(), crc_loc);
         }
       };
 
