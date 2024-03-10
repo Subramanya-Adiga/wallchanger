@@ -20,6 +20,10 @@ enum class MessageType : uint32_t {
   Rename_Collection,
   Remove_Collection,
   List_Collections,
+  Add_To_Collection,
+  Remove,
+  Merge_Collection,
+  Move,
   // Status Messages
   Status_Success,
   Status_Failure,
