@@ -60,7 +60,7 @@ protected:
     case wallchanger::MessageType::Get_Next_Wallpaper: {
       std::random_device random_device;
       std::mt19937 generator(random_device());
-      auto cache = m_cache.get_cache(m_active);
+      auto cache = m_cache.get_cache(m_active).value().get();
       std::uniform_int_distribution<> dist(1, static_cast<int>(cache.size()));
 
       bool found = false;
@@ -120,7 +120,9 @@ protected:
 
     case wallchanger::MessageType::Mark_Favorate: {
       auto cache =
-          m_cache.get_cache(server_cmd["collection"].get<std::string>());
+          m_cache.get_cache(server_cmd["collection"].get<std::string>())
+              .value()
+              .get();
       cache.set_state(
           server_cmd["index"]
               .get<wallchanger::cache_lib::cache_lib_type::key_type>(),

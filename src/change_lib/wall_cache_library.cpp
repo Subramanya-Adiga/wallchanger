@@ -3,6 +3,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
+namespace wallchanger {
 wallchanger::cache_lib::cache_lib(bool load) {
   if (load) {
     if (deserialize()) {
@@ -27,13 +28,22 @@ void wallchanger::cache_lib::insert(std::string name, std::string path,
   }
 }
 
-wallchanger::cache_lib::cache_lib_type
+std::optional<cache_lib::cache_lib_cref>
 wallchanger::cache_lib::get_cache(std::string_view name) const noexcept {
   if (exists(name)) {
     auto rng_it = ranges::find(m_cache_vec, name, &cache_store::name);
     return rng_it->cache;
   }
   return {};
+}
+
+std::optional<cache_lib::cache_lib_ref>
+wallchanger::cache_lib::get_cache(std::string_view name) noexcept {
+  if (exists(name)) {
+    auto itr = ranges::find(m_cache_vec, name, &cache_store::name);
+    return itr->cache;
+  }
+  return std::nullopt;
 }
 
 void wallchanger::cache_lib::change_active(
@@ -97,7 +107,11 @@ wallchanger::cache_lib::get_cache_path(std::string_view name) const noexcept {
 
 std::string
 wallchanger::cache_lib::cache_retrive_path(uint32_t id) const noexcept {
-  return m_table.get(id).string();
+  if (auto dat = m_table.get(id)) {
+    return dat.value().get().string();
+  }
+
+  return {};
 }
 
 bool wallchanger::cache_lib::modified() const noexcept {
@@ -109,9 +123,9 @@ bool wallchanger::cache_lib::modified() const noexcept {
   return false;
 }
 
-wallchanger::cache_lib::cache_store
+std::optional<cache_lib::cache_lib_cref>
 wallchanger::cache_lib::get_current() const noexcept {
-  return m_current;
+  return m_current.cache;
 }
 
 std::string wallchanger::cache_lib::get_current_name() const noexcept {
@@ -162,3 +176,4 @@ bool wallchanger::cache_lib::deserialize() {
   }
   return false;
 }
+} // namespace wallchanger

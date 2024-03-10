@@ -47,8 +47,8 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     wallchanger::cache_lib lib;
     lib.insert("cache1", "~", cache);
     lib.insert("cache2", "~", cache2);
-    REQUIRE(lib.get_cache("cache2").empty() == true);
-    REQUIRE(lib.get_cache("cache1").empty() == false);
+    REQUIRE(lib.get_cache("cache2").value().get().empty() == true);
+    REQUIRE(lib.get_cache("cache1").value().get().empty() == false);
   }
   SECTION("erase") {
     wallchanger::cache_lib lib;
@@ -63,6 +63,7 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     lib.insert("cache2", "~", cache2);
     auto lib55 = lib.get_cache("cache1");
     lib.change_active("cache1");
-    REQUIRE(lib.get_current().name == "cache1");
+    REQUIRE(lib.get_current_name() == "cache1");
+    REQUIRE(lib.get_current().value().get() == cache);
   }
 }
