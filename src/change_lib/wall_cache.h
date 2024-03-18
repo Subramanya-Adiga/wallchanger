@@ -4,7 +4,6 @@
  * Implementaion Of Key Value Based Flat Map Type Of Container With
  * State(Used,Unused,Null).
  */
-
 namespace wallchanger {
 
 /// Cache State
@@ -209,3 +208,40 @@ private:
 };
 
 } // namespace wallchanger
+
+template <>
+struct fmt::formatter<wallchanger::cache_state_e>
+    : fmt::formatter<std::string_view> {
+  template <typename FormatContext>
+  auto fomrmat(wallchanger::cache_state_e obj, FormatContext &ctx) const {
+    std::string_view out = "NULL";
+    switch (obj) {
+    case wallchanger::cache_state_e::null:
+      out = "NULL";
+      break;
+    case wallchanger::cache_state_e::unused:
+      out = "Unused";
+      break;
+    case wallchanger::cache_state_e::used:
+      out = "Used";
+      break;
+    case wallchanger::cache_state_e::favorate:
+      out = "Favorate";
+      break;
+    }
+    return formatter<std::string_view>::format(out, ctx);
+  }
+};
+
+template <>
+struct fmt::formatter<wallchanger::cache_type_struct<int, std::string>>
+    : fmt::formatter<string_view> {
+  template <typename FormatContext>
+  auto format(const wallchanger::cache_type_struct<int, std::string> &obj,
+              FormatContext &ctx) const {
+    std::string out = fmt::format("Key:{}\n,Value:{}\n,State:{}\n,LocID:{:X}\n",
+                                  obj.cache_key, obj.cache_value,
+                                  fmt::underlying(obj.cache_state), obj.loc);
+    return formatter<string_view>::format(out, ctx);
+  }
+};
