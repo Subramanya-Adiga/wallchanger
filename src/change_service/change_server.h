@@ -4,6 +4,7 @@
 #include <json_helper.h>
 #include <net/server_interface.h>
 #include <nlohmann/json.hpp>
+#include <path_table.h>
 #include <random>
 #include <wall_cache.h>
 #include <wall_cache_library.h>
@@ -25,6 +26,7 @@ public:
       obj["histoy"] = m_previous;
       hist << std::setw(4) << obj << "\n";
     }
+    m_path_buf.store();
     m_cache.serialize();
   }
 
@@ -77,7 +79,7 @@ protected:
         uint32_t path_loc = cache[idx].loc;
         nlohmann::json send;
         send["wallpaper"] = ret.cache_value;
-        send["path"] = m_cache.cache_retrive_path(path_loc);
+        send["path"] = m_path_buf.get(path_loc).value().get();
         send["index"] = idx;
         send["collection"] = m_active;
         m_previous.push_back(send);
@@ -169,8 +171,8 @@ protected:
             std::filesystem::recursive_directory_iterator(col_path), inserter);
       }
 
-      m_cache.insert(server_cmd["new_col_name"].get<std::string>(), col_path,
-                     cache);
+      m_path_buf.insert(col_path);
+      m_cache.insert(server_cmd["new_col_name"].get<std::string>(), cache);
       LOG_INFO(get_logger_name(), "created collection:[{}] path:[{}]\n",
                server_cmd["new_col_name"].get<std::string>(),
                server_cmd["col_path"].get<std::string>());
@@ -188,7 +190,7 @@ protected:
         auto cache = dat.value().get();
 
         cache.insert(wall.filename().string(), path_crc);
-        m_cache.cache_push_path(std::move(wall_path));
+        m_path_buf.insert(wall_path);
 
         LOG_INFO(get_logger_name(), "added wall:[{}] to collection:[{}]\n",
                  server_cmd["col_name"].get<std::string>(),
@@ -301,6 +303,7 @@ protected:
 private:
   std::chrono::time_point<std::chrono::system_clock> m_start_time;
   wallchanger::cache_lib m_cache;
+  path_table m_path_buf;
   std::vector<nlohmann::json> m_previous;
   std::string m_active;
   inline static net::message<MessageType> m_success() {
