@@ -19,10 +19,8 @@ cache_lib::cache_lib(bool load) {
   }
 }
 
-void cache_lib::insert(std::string name, std::string path,
-                       cache_lib_type value) noexcept {
+void cache_lib::insert(std::string name, cache_lib_type value) noexcept {
   if (!exists(name)) {
-    m_table.insert(std::move(path));
     m_cache_vec.emplace_back(std::move(name),
                              std::forward<cache_lib_type>(value));
   }
@@ -85,30 +83,7 @@ bool cache_lib::exists(std::string_view name) const noexcept {
   return false;
 }
 
-size_t cache_lib::capacity() const noexcept { return m_cache_vec.capacity(); }
-
 size_t cache_lib::cache_count() const noexcept { return m_cache_vec.size(); }
-
-std::string_view
-cache_lib::get_cache_path(std::string_view name) const noexcept {
-  if (exists(name)) {
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-    return {};
-  }
-  return {};
-}
-
-std::string cache_lib::cache_retrive_path(uint32_t id) const noexcept {
-  if (auto dat = m_table.get(id)) {
-    return dat.value().get().string();
-  }
-
-  return {};
-}
-
-void cache_lib::cache_push_path(std::filesystem::path path) noexcept {
-  m_table.insert(std::move(path));
-}
 
 bool wallchanger::cache_lib::modified() const noexcept {
   if (!is_empty()) {
@@ -122,10 +97,6 @@ bool wallchanger::cache_lib::modified() const noexcept {
 std::optional<cache_lib::cache_lib_cref>
 cache_lib::get_current() const noexcept {
   return m_current.second;
-}
-
-std::string cache_lib::get_current_name() const noexcept {
-  return m_active_name;
 }
 
 std::vector<std::string> cache_lib::cache_list() const noexcept {
@@ -152,7 +123,6 @@ void cache_lib::serialize() const {
     if (obj_file.good()) {
       obj_file << std::setw(4) << obj << "\n";
     }
-    m_table.store();
   }
 }
 

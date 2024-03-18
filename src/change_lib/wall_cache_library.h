@@ -1,5 +1,4 @@
 #pragma once
-#include "path_table.h"
 #include "wall_cache.h"
 
 namespace wallchanger {
@@ -17,8 +16,7 @@ public:
   cache_lib() = default;
   explicit cache_lib(bool load);
 
-  void insert(std::string name, std::string path,
-              cache_lib_type value) noexcept;
+  void insert(std::string name, cache_lib_type value) noexcept;
 
   [[nodiscard]] std::optional<cache_lib_cref>
   get_cache(std::string_view name) const noexcept;
@@ -26,21 +24,13 @@ public:
   [[nodiscard]] std::optional<cache_lib_ref>
   get_cache(std::string_view name) noexcept;
 
-  [[nodiscard]] std::string_view
-  get_cache_path(std::string_view name) const noexcept;
-
-  [[nodiscard]] std::string cache_retrive_path(uint32_t id) const noexcept;
-  void cache_push_path(std::filesystem::path path) noexcept;
-
   [[nodiscard]] std::optional<cache_lib_cref> get_current() const noexcept;
-  [[nodiscard]] std::string get_current_name() const noexcept;
 
   void change_active(std::string_view new_active) noexcept;
   void rename_store(std::string_view from_name,
                     std::string_view to_name) noexcept;
 
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
-  [[nodiscard]] size_t capacity() const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 
   void remove(std::string_view name) noexcept;
@@ -56,7 +46,6 @@ public:
 
 private:
   std::string m_active_name;
-  path_table m_table;
   inline void m_clear_empty() noexcept {
     if (!is_empty()) {
       ranges::actions::drop_while(
