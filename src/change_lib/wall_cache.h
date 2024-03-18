@@ -1,12 +1,6 @@
 #pragma once
-/**
- * @file wall_cache.h
- * Implementaion Of Key Value Based Flat Map Type Of Container With
- * State(Used,Unused,Null).
- */
 namespace wallchanger {
 
-/// Cache State
 enum class cache_state_e : uint32_t {
   null,
   unused,
@@ -14,38 +8,23 @@ enum class cache_state_e : uint32_t {
   favorate,
 };
 
-/// Representation Of Cache Item
-template <typename Key, typename Value> struct cache_type_struct {
-  Key cache_key;               ///< Cache Key
-  Value cache_value;           ///< Cache Value
-  cache_state_e cache_state{}; ///< Cache State
+template <typename Value> struct cache_item {
+  Value cache_value;
+  cache_state_e cache_state{};
   uint32_t loc{};
-  cache_type_struct() = default; ///< Default Constructor
-  /**
-   * @brief Explicit Constructor
-   * @param cache_key1
-   * @param cache_value1
-   * @param state1
-   */
-  explicit cache_type_struct(Key cache_key1, Value cache_value1,
-                             cache_state_e state1, uint32_t loc)
-      : cache_key(std::move(cache_key1)),
-        cache_value(std::forward<Value>(cache_value1)), cache_state(state1),
-        loc(loc) {}
-  /// Threeway Comparator Operator
-  auto operator<=>(const cache_type_struct &) const = default;
+  cache_item() = default;
+
+  explicit cache_item(Value cache_value1, cache_state_e state1, uint32_t loc1)
+      : cache_value(std::forward<Value>(cache_value1)), cache_state(state1),
+        loc(loc1) {}
+  auto operator<=>(const cache_item &) const = default;
 };
 
-/**
- * Falt Map Type Container For Cache Items
- */
-template <typename Key, typename Value> class cache {
-  using cache_t = cache_type_struct<Key, Value>; // std::pair<Key,
-                                                 // std::pair<Value, int>>;
+template <typename Value> class cache {
+  using cache_t = cache_item<Value>; // std::pair<Key,
+                                     // std::pair<Value, int>>;
 
 public:
-  using key_type = Key;      ///<  KeyType
-  using mapped_type = Value; ///< Mapped Type
   using value_type = typename std::vector<cache_t>::value_type;
   using size_type = typename std::vector<cache_t>::size_type;
   using reference = typename std::vector<cache_t>::reference;
@@ -56,129 +35,54 @@ public:
   using const_reverse_iterator =
       typename std::vector<cache_t>::const_reverse_iterator;
 
-  cache() = default; ///< Default Constructor
-  /**
-   * @brief Constructor With Size
-   * @details Construct Container For Size Items
-   * @param size
-   */
-  explicit cache(size_type size) {
-    size_type size_ = 0;
-    size_ = (size == 0) ? std::numeric_limits<char>::max() : size;
-    m_cache_vec.reserve(size_);
+  cache() = default;
+
+  [[nodiscard]] bool contains(const Value &val) const noexcept {
+    auto rng_it = ranges::find(m_list, val, &cache_t::cache_value);
+    return (rng_it != ranges::end(m_list));
   }
-  void reserve(size_type size) { m_cache_vec.reserve(size); }
-  /**
-   *  @brief Insertion
-   *  @details Insert Value Of Val with Assosiated Key Into Container
-   */
+
   template <typename val>
-  void insert(key_type key, val &&value, uint32_t loc)
+  void insert(val &&value, uint32_t loc)
     requires std::same_as<val, Value>
   {
-    if (!exists(key)) {
-      m_cache_vec.emplace_back(std::move(key), std::forward<val>(value),
-                               cache_state_e::unused, loc);
+    if (!contains(value)) {
+      m_list.emplace_back(std::forward<val>(value), cache_state_e::unused, loc);
       m_modified = true;
     }
   }
 
-  template <typename val>
-  void replace(key_type key, val &&value) noexcept
-    requires std::same_as<val, Value>
-  {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
-    if (it_rng->cache_key == key) {
-      it_rng->cache_value = std::forward<val>(value);
-      it_rng->cache_state = cache_state_e::unused;
-      m_modified = true;
-    }
-  }
-
-  /// Clears Contents Of Container
   void clear() noexcept {
-    m_cache_vec.clear();
+    m_list.clear();
     m_modified = true;
   }
-  void erase(key_type key) noexcept {
-    ranges::actions::drop_while(
-        m_cache_vec, [&](auto &type) { return (key == type.cache_key); });
-    m_modified = true;
-  }
-  void shrink_to_fit() { m_cache_vec.shrink_to_fit(); }
 
-  [[nodiscard]] size_type size() const noexcept { return m_cache_vec.size(); }
-  [[nodiscard]] size_type capacity() const noexcept {
-    return m_cache_vec.capacity();
-  }
-  [[nodiscard]] bool empty() const noexcept { return m_cache_vec.empty(); }
+  [[nodiscard]] size_type size() const noexcept { return m_list.size(); }
+  [[nodiscard]] bool empty() const noexcept { return m_list.empty(); }
   [[nodiscard]] bool modified() const noexcept { return m_modified; }
-  [[nodiscard]] bool exists(key_type key) const noexcept {
-    if (!empty()) {
-      auto rng_it = ranges::find(m_cache_vec, key, &value_type::cache_key);
-      if (rng_it != ranges::end(m_cache_vec)) {
-        return (rng_it->cache_key == key);
-      }
-    }
-    return false;
-  }
-
-  [[nodiscard]] mapped_type get(key_type key) const noexcept {
-    return at_(key);
-  }
-  [[nodiscard]] mapped_type get(key_type key) noexcept { return at_(key); }
-
-  void set_state(key_type key, cache_state_e new_state) noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
-    if (it_rng->cache_key == key) {
-      it_rng->cache_state = new_state;
-      m_modified = true;
-    }
-  }
-  [[nodiscard]] cache_state_e get_state(key_type key) const noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
-    return static_cast<cache_state_e>(it_rng->cache_state);
-  }
-
-  [[nodiscard]] uint32_t get_loc_id(key_type key) const noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
-    return it_rng->loc;
-  }
-  // Refrences
-  reference front() noexcept { return m_cache_vec.front(); }
-  reference back() noexcept { return m_cache_vec.back(); }
-
-  [[nodiscard]] const_reference front() const noexcept {
-    return m_cache_vec.front();
-  }
-  [[nodiscard]] const_reference back() const noexcept {
-    return m_cache_vec.back();
-  }
 
   // Iterators
-  [[nodiscard]] iterator begin() noexcept { return std::begin(m_cache_vec); }
-  [[nodiscard]] iterator end() noexcept { return std::end(m_cache_vec); }
+  [[nodiscard]] iterator begin() noexcept { return std::begin(m_list); }
+  [[nodiscard]] iterator end() noexcept { return std::end(m_list); }
 
   [[nodiscard]] const_iterator begin() const noexcept {
-    return std::cbegin(m_cache_vec);
+    return std::cbegin(m_list);
   }
   [[nodiscard]] const_iterator end() const noexcept {
-    return std::cend(m_cache_vec);
+    return std::cend(m_list);
   }
 
   [[nodiscard]] const_iterator cbegin() const noexcept {
-    return std::cbegin(m_cache_vec);
+    return std::cbegin(m_list);
   }
   [[nodiscard]] const_iterator cend() const noexcept {
-    return std::cend(m_cache_vec);
+    return std::cend(m_list);
   }
 
   [[nodiscard]] reverse_iterator rbegin() noexcept {
-    return std::rbegin(m_cache_vec);
+    return std::rbegin(m_list);
   }
-  [[nodiscard]] reverse_iterator rend() noexcept {
-    return std::rend(m_cache_vec);
-  }
+  [[nodiscard]] reverse_iterator rend() noexcept { return std::rend(m_list); }
 
   [[nodiscard]] const_reverse_iterator rbegin() const noexcept {
     return rbegin();
@@ -191,22 +95,16 @@ public:
   [[nodiscard]] const_reverse_iterator crend() const noexcept { return rend(); }
 
   // Operators
-  mapped_type operator[](key_type key) const noexcept { return at_(key); }
+  reference operator[](size_type idx) const { return m_list.at(idx); }
 
-  mapped_type operator[](key_type key) noexcept { return at_(key); }
+  reference operator[](size_type idx) { return m_list.at(idx); }
 
-  bool operator!() const noexcept { return this->m_cache_vec.empty(); }
   auto operator<=>(const cache &) const = default;
 
 private:
   bool m_modified = false;
-  std::vector<value_type> m_cache_vec;
-  [[nodiscard]] mapped_type at_(key_type key) const noexcept {
-    auto it_rng = ranges::find(m_cache_vec, key, &value_type::cache_key);
-    return it_rng->cache_value;
-  }
+  std::vector<value_type> m_list;
 };
-
 } // namespace wallchanger
 
 template <>
@@ -234,14 +132,14 @@ struct fmt::formatter<wallchanger::cache_state_e>
 };
 
 template <>
-struct fmt::formatter<wallchanger::cache_type_struct<int, std::string>>
+struct fmt::formatter<wallchanger::cache_item<std::string>>
     : fmt::formatter<string_view> {
   template <typename FormatContext>
-  auto format(const wallchanger::cache_type_struct<int, std::string> &obj,
+  auto format(const wallchanger::cache_item<std::string> &obj,
               FormatContext &ctx) const {
-    std::string out = fmt::format("Key:{}\n,Value:{}\n,State:{}\n,LocID:{:X}\n",
-                                  obj.cache_key, obj.cache_value,
-                                  fmt::underlying(obj.cache_state), obj.loc);
+    std::string out =
+        fmt::format("Value:{}\n,State:{}\n,LocID:{:X}\n", obj.cache_value,
+                    fmt::underlying(obj.cache_state), obj.loc);
     return formatter<string_view>::format(out, ctx);
   }
 };
