@@ -34,14 +34,14 @@ class application {
        po::value<std::vector<std::string>>()->multitoken()},
       {"set-active", "Change Active Collection To [Arg].",
        po::value<std::string>()},
-      {"add", "add wallpaper to collection. [Col] [Wall](unimplemented)",
+      {"add", "add wallpaper to collection. [Col] [Wall]",
        po::value<std::vector<std::string>>()->multitoken()},
       {"remove,r",
        "remove collection or wallpaper from collection. [Col] or [Col] [wall]",
        po::value<std::vector<std::string>>()->multitoken()},
       {"rename", "rename collection. [Col] [Arg]",
        po::value<std::vector<std::string>>()->multitoken()},
-      {"merge", "merge two collection. [col1] [col2](unimplemented)",
+      {"merge", "merge two collection. [col1] [col2]",
        po::value<std::vector<std::string>>()->multitoken()},
       {"list,l",
        "list wallpapers in collection [Col]. If Col Is Empty List All "
@@ -92,5 +92,6 @@ private:
   wallchanger::change_client m_client;
 
   void m_process_commands(subcommand_e cmd);
+  void m_collection_cmds();
 };
 } // namespace wallchanger

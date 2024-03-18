@@ -4,7 +4,10 @@
 // Image
 #include "wall_background.h"
 #include <fmt/chrono.h>
+#include <json_helper.h>
 #include <net/client_interface.h>
+#include <wall_cache.h>
+#include <wall_cache_library.h>
 
 namespace wallchanger {
 class change_client : public net::client_interface<MessageType> {
@@ -112,15 +115,21 @@ private:
       } break;
       case MessageType::List_Collections: {
         auto obj = message_helper::msg_to_json(msg);
-        fmt::print("{}\n",
-                   fmt::join(obj["list"].get<std::vector<std::string>>(), ","));
-        msg_processed = true;
+        if (obj["list-only"].get<bool>()) {
+          fmt::print(
+              "{}\n",
+              fmt::join(obj["list"].get<std::vector<std::string>>(), ","));
+          msg_processed = true;
+        } else {
+          auto col = obj["list"].get<wallchanger::cache_lib::cache_lib_type>();
+          fmt::print("{}\n", fmt::join(col, ",\n"));
+          msg_processed = true;
+        }
       } break;
       case MessageType::Create_Collection:
       case MessageType::Change_Active_Collection:
       case MessageType::Mark_Favorate:
       case MessageType::Rename_Collection:
-      case MessageType::Remove_Collection:
       case MessageType::Client_Accepted:
       case MessageType::Client_AssignID:
       case MessageType::Client_RegisterWithServer:

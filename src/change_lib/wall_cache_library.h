@@ -22,11 +22,16 @@ public:
 
   [[nodiscard]] std::optional<cache_lib_cref>
   get_cache(std::string_view name) const noexcept;
+
   [[nodiscard]] std::optional<cache_lib_ref>
   get_cache(std::string_view name) noexcept;
+
   [[nodiscard]] std::string_view
   get_cache_path(std::string_view name) const noexcept;
+
   [[nodiscard]] std::string cache_retrive_path(uint32_t id) const noexcept;
+  void cache_push_path(std::filesystem::path path) noexcept;
+
   [[nodiscard]] std::optional<cache_lib_cref> get_current() const noexcept;
   [[nodiscard]] std::string get_current_name() const noexcept;
 
