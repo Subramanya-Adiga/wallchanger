@@ -1,6 +1,5 @@
 #pragma once
 #include "wall_cache.h"
-#include "wall_cache_library.h"
 #include <nlohmann/adl_serializer.hpp>
 #include <nlohmann/json.hpp>
 
@@ -15,21 +14,19 @@ NLOHMANN_JSON_SERIALIZE_ENUM(wallchanger::cache_state_e,
 
 namespace nlohmann {
 
-template <typename key, typename value>
-struct adl_serializer<wallchanger::cache_type_struct<key, value>> {
+template <typename value>
+struct adl_serializer<wallchanger::cache_item<value>> {
 
   static void to_json(json &serialize_obj,
-                      const wallchanger::cache_type_struct<key, value> &rhs) {
-    serialize_obj = nlohmann::json{{"key", rhs.cache_key},
-                                   {"value", rhs.cache_value},
+                      const wallchanger::cache_item<value> &rhs) {
+    serialize_obj = nlohmann::json{{"value", rhs.cache_value},
                                    {"state", rhs.cache_state},
                                    {"loc", rhs.loc}};
   }
 
   static void from_json(const json &serialize_obj,
-                        wallchanger::cache_type_struct<key, value> &rhs) {
+                        wallchanger::cache_item<value> &rhs) {
     if (!serialize_obj.is_null()) {
-      rhs.cache_key = serialize_obj.at("key");
       rhs.cache_value = serialize_obj.at("value");
       rhs.cache_state = serialize_obj.at("state");
       rhs.loc = serialize_obj.at("loc");
@@ -37,18 +34,16 @@ struct adl_serializer<wallchanger::cache_type_struct<key, value>> {
   }
 };
 
-template <typename key, typename value>
-struct adl_serializer<wallchanger::cache<key, value>> {
+template <typename value> struct adl_serializer<wallchanger::cache<value>> {
 
   static void to_json(json &serialize_obj,
-                      const wallchanger::cache<key, value> &rhs) {
+                      const wallchanger::cache<value> &rhs) {
     if (rhs.empty()) {
       serialize_obj = {};
     } else {
       auto arr = json::array();
       for (auto &&cache_obj : rhs) {
-        arr.push_back(nlohmann::json{{"key", cache_obj.cache_key},
-                                     {"value", cache_obj.cache_value},
+        arr.push_back(nlohmann::json{{"value", cache_obj.cache_value},
                                      {"state", cache_obj.cache_state},
                                      {"loc", cache_obj.loc}});
       }
@@ -57,13 +52,14 @@ struct adl_serializer<wallchanger::cache<key, value>> {
   }
 
   static void from_json(const json &serialize_obj,
-                        wallchanger::cache<key, value> &rhs) {
+                        wallchanger::cache<value> &rhs) {
     if (!serialize_obj.is_null()) {
       rhs.clear();
+      size_t size = 0;
       for (auto &&obj : serialize_obj) {
-        rhs.insert(obj["key"].get<key>(), obj["value"].get<value>(),
-                   obj["loc"].get<uint32_t>());
-        rhs.set_state(obj["key"].get<key>(), obj["state"]);
+        rhs.insert(obj["value"].get<value>(), obj["loc"].get<uint32_t>());
+        rhs[size].cache_state = obj["state"];
+        size++;
       }
     }
   }

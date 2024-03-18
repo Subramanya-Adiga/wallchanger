@@ -4,7 +4,7 @@
 
 namespace wallchanger {
 class cache_lib {
-  using cache_type = cache<int, std::string>;
+  using cache_type = cache<std::string>;
   using cache_store = std::pair<std::string, cache_type>;
   std::vector<cache_store> m_cache_vec;
   cache_store m_current;

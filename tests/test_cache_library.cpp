@@ -6,8 +6,8 @@
 TEST_CASE("Library Construction", "[cahce lib construct]") {
   using namespace std::literals;
   // test cache construction
-  wallchanger::cache_lib::cache_lib_type cache(0);
-  cache.insert(0, "hello"s, 0);
+  wallchanger::cache_lib::cache_lib_type cache;
+  cache.insert("hello"s, 0);
 
   wallchanger::cache_lib lib1;
   lib1.insert("cache1", "~", cache);
@@ -24,10 +24,10 @@ TEST_CASE("Library Construction", "[cahce lib construct]") {
 
 TEST_CASE("Library Functionality", "[cache lib function]") {
   using namespace std::literals;
-  wallchanger::cache_lib::cache_lib_type cache(0);
-  cache.insert(0, "hello"s, 0);
-  cache.insert(1, "world"s, 0);
-  wallchanger::cache_lib::cache_lib_type cache2(0);
+  wallchanger::cache_lib::cache_lib_type cache;
+  cache.insert("hello"s, 0);
+  cache.insert("world"s, 0);
+  wallchanger::cache_lib::cache_lib_type cache2;
 
   SECTION("insection") {
     wallchanger::cache_lib lib;
