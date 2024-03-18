@@ -69,17 +69,17 @@ struct adl_serializer<wallchanger::cache<key, value>> {
   }
 };
 
-template <typename T> struct adl_serializer<wallchanger::cache_store_t<T>> {
+template <typename T> struct adl_serializer<std::pair<std::string, T>> {
   static void to_json(json &serialize_obj,
-                      const wallchanger::cache_store_t<T> &rhs) {
-    serialize_obj = nlohmann::json{{"Name", rhs.name}, {"Store", rhs.cache}};
+                      const std::pair<std::string, T> &rhs) {
+    serialize_obj = nlohmann::json{{"Name", rhs.first}, {"Store", rhs.second}};
   }
 
   static void from_json(const json &serialize_obj,
-                        wallchanger::cache_store_t<T> &rhs) {
+                        std::pair<std::string, T> &rhs) {
     if (!serialize_obj.is_null()) {
-      rhs.name = serialize_obj.at("Name");
-      rhs.cache = serialize_obj["Store"].get<T>();
+      rhs = std::make_pair(serialize_obj.at("Name"),
+                           serialize_obj["Store"].get<T>());
     }
   }
 };
