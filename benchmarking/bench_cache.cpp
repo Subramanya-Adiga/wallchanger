@@ -7,12 +7,12 @@
 TEST_CASE("Cache") {
 
   BENCHMARK_ADVANCED("CACHE INSERT")(Catch::Benchmark::Chronometer meter) {
-    wallchanger::cache<int, std::string> cache;
+    wallchanger::cache<std::string> cache;
     meter.measure([&] {
-      cache = wallchanger::cache<int, std::string>();
+      cache = wallchanger::cache<std::string>();
       int i = 0;
       for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-        cache.insert(i, x.path().filename().string(), 0);
+        cache.insert(x.path().filename().string(), 0);
         i++;
       }
     });
@@ -20,12 +20,12 @@ TEST_CASE("Cache") {
 
   BENCHMARK_ADVANCED("CACHE INSERT Forward")
   (Catch::Benchmark::Chronometer meter) {
-    wallchanger::cache<int, std::string> cache;
+    wallchanger::cache<std::string> cache;
     meter.measure([&] {
-      cache = wallchanger::cache<int, std::string>();
+      cache = wallchanger::cache<std::string>();
       int i = 0;
       for (auto &&x : std::filesystem::directory_iterator("D:/Wallpaper")) {
-        cache.insert(i, std::forward<std::string>(x.path().filename().string()),
+        cache.insert(std::forward<std::string>(x.path().filename().string()),
                      0);
         i++;
       }
