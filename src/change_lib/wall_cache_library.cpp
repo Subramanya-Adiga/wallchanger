@@ -106,7 +106,11 @@ std::string cache_lib::cache_retrive_path(uint32_t id) const noexcept {
   return {};
 }
 
-bool cache_lib::modified() const noexcept {
+void cache_lib::cache_push_path(std::filesystem::path path) noexcept {
+  m_table.insert(std::move(path));
+}
+
+bool wallchanger::cache_lib::modified() const noexcept {
   if (!is_empty()) {
     auto rng_it = ranges::find_if(
         m_cache_vec, [](auto &&type) { return type.second.modified(); });
