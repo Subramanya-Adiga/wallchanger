@@ -154,7 +154,14 @@ void wallchanger::application::m_collection_cmds() {
   }
 
   if (m_option_map.count("list") != 0U) {
-    nlohmann::json obj = {};
+    auto cmd = m_option_map["list"].as<std::string>();
+    nlohmann::json obj;
+    if (!cmd.empty()) {
+      obj["col"] = cmd;
+      obj["col_only"] = false;
+    } else {
+      obj["col_only"] = true;
+    }
     m_client.send_message(
         message_helper::json_to_msg(MessageType::List_Collections, obj));
   }
@@ -186,8 +193,8 @@ void wallchanger::application::m_collection_cmds() {
   if (m_option_map.count("rename") != 0U) {
     auto res = m_option_map["rename"].as<std::vector<std::string>>();
     nlohmann::json msg;
-    msg["col"] = res.at(0);
-    msg["col_new_name"] = res.at(1);
+    msg["col_name"] = res.at(0);
+    msg["col_name_new"] = res.at(1);
     m_client.send_message(
         message_helper::json_to_msg(MessageType::Rename_Collection, msg));
   }

@@ -1,6 +1,7 @@
 #pragma once
 #include "message_type.h"
 #include <fstream>
+#include <json_helper.h>
 #include <net/server_interface.h>
 #include <nlohmann/json.hpp>
 #include <random>
@@ -21,11 +22,7 @@ public:
       std::ofstream hist(data_directory() + "/data/history.json",
                          std::ios::out);
       nlohmann::json obj;
-      auto obj_arr = nlohmann::json::array();
-      for (auto &&elem : m_previous) {
-        obj_arr.push_back(elem);
-      }
-      obj["histoy"] = obj_arr;
+      obj["histoy"] = m_previous;
       hist << std::setw(4) << obj << "\n";
     }
     m_cache.serialize();
@@ -119,21 +116,21 @@ protected:
     } break;
 
     case wallchanger::MessageType::Mark_Favorate: {
-      auto cache =
-          m_cache.get_cache(server_cmd["collection"].get<std::string>())
-              .value()
-              .get();
-      cache.set_state(
-          server_cmd["index"]
-              .get<wallchanger::cache_lib::cache_lib_type::key_type>(),
-          wallchanger::cache_state_e::favorate);
-      LOG_INFO(
-          get_logger_name(),
-          "Client:[{}] Marked {} Wallpaper From Collection {} As Favorate\n",
-          client->get_id(), server_cmd["collection"].get<std::string>(),
-          cache[server_cmd["index"]
-                    .get<wallchanger::cache_lib::cache_lib_type::key_type>()]);
-      client->send_message(m_success());
+      // auto cache =
+      //     m_cache.get_cache(server_cmd["collection"].get<std::string>())
+      //         .value()
+      //         .get();
+      // cache.set_state(
+      //     server_cmd["index"]
+      //         .get<wallchanger::cache_lib::cache_lib_type::key_type>(),
+      //     wallchanger::cache_state_e::favorate);
+      // LOG_INFO(
+      //     get_logger_name(),
+      //     "Client:[{}] Marked {} Wallpaper From Collection {} As Favorate\n",
+      //     client->get_id(), server_cmd["collection"].get<std::string>(),
+      //     cache[server_cmd["index"]
+      //               .get<wallchanger::cache_lib::cache_lib_type::key_type>()]);
+      // client->send_message(m_success());
     } break;
 
       // Collection Messages
@@ -179,6 +176,26 @@ protected:
       client->send_message(m_success());
     } break;
 
+    case wallchanger::MessageType::Add_To_Collection: {
+      auto col_name = server_cmd["col_name"].get<std::string>();
+      auto wall = server_cmd["wall"].get<std::filesystem::path>();
+      auto wall_path = wall.parent_path().string();
+      auto path_crc = static_cast<uint32_t>(
+          wallchanger::helper::crc(wall_path.begin(), wall_path.end()));
+      if (auto dat = m_cache.get_cache(col_name)) {
+        auto cache = dat.value().get();
+
+        cache.insert(wallchanger::helper::gen_id(), wall.filename().string(),
+                     path_crc);
+        m_cache.cache_push_path(std::move(wall_path));
+
+        LOG_INFO(get_logger_name(), "added wall:[{}] to collection:[{}]\n",
+                 server_cmd["col_name"].get<std::string>(),
+                 server_cmd["wall"].get<std::string>());
+        client->send_message(m_success());
+      }
+    } break;
+
     case MessageType::Rename_Collection: {
       m_cache.rename_store(server_cmd["col_name"].get<std::string>(),
                            server_cmd["col_name_new"].get<std::string>());
@@ -188,20 +205,60 @@ protected:
                server_cmd["col_name_new"].get<std::string>());
     } break;
 
-    case MessageType::Remove_Collection: {
-      m_cache.remove(server_cmd["col_name"].get<std::string>());
-      client->send_message(m_success());
-      LOG_INFO(get_logger_name(), "removed collection:[{}]\n",
-               server_cmd["col_name"].get<std::string>());
+    case MessageType::Remove: {
+      if (server_cmd["wall_only"].get<bool>()) {
+        if (auto dat =
+                m_cache.get_cache(server_cmd["col"].get<std::string_view>())) {
+
+          client->send_message(m_success());
+          LOG_INFO(get_logger_name(),
+                   "removed wallpaper:[{}] from collection:[{}]\n",
+                   server_cmd["wall"].get<std::string_view>(),
+                   server_cmd["col"].get<std::string_view>());
+        }
+      } else {
+        m_cache.remove(server_cmd["col"].get<std::string_view>());
+        client->send_message(m_success());
+        LOG_INFO(get_logger_name(), "removed collection:[{}]\n",
+                 server_cmd["col"].get<std::string_view>());
+      }
     } break;
 
     case MessageType::List_Collections: {
       nlohmann::json obj;
-      obj["list"] = m_cache.cache_list();
-      client->send_message(
-          message_helper::json_to_msg(MessageType::List_Collections, obj));
-      LOG_INFO(get_logger_name(), "client:[{}] requested to list collections\n",
-               client->get_id());
+      if (!server_cmd["col_only"].get<bool>()) {
+        if (auto dat =
+                m_cache.get_cache(server_cmd["col"].get<std::string_view>())) {
+          obj["list"] = dat.value().get();
+          obj["list-only"] = false;
+          client->send_message(
+              message_helper::json_to_msg(MessageType::List_Collections, obj));
+          LOG_INFO(get_logger_name(),
+                   "client:[{}] requested to list collections\n",
+                   client->get_id());
+        }
+      } else {
+        obj["list"] = m_cache.cache_list();
+        obj["list-only"] = true;
+        client->send_message(
+            message_helper::json_to_msg(MessageType::List_Collections, obj));
+        LOG_INFO(get_logger_name(),
+                 "client:[{}] requested to list collections\n",
+                 client->get_id());
+      }
+    } break;
+
+    case MessageType::Merge_Collection: {
+
+    } break;
+
+    case MessageType::Move: {
+      auto col_frm = server_cmd["col_cur"].get<std::string_view>();
+      auto col_to = server_cmd["col_new"].get<std::string_view>();
+      auto wall = server_cmd["wall"].get<std::string_view>();
+
+      if (auto cache_frm = m_cache.get_cache(col_frm)) {
+      }
     } break;
 
       // Server Status Messages
