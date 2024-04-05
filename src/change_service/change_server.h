@@ -252,7 +252,13 @@ protected:
     } break;
 
     case MessageType::Merge_Collection: {
-
+      auto col1 = server_cmd["col1"].get<std::string_view>();
+      auto col2 = server_cmd["col2"].get<std::string_view>();
+      m_cache.merge_cache(col1, col2);
+      client->send_message(m_success());
+      LOG_INFO(get_logger_name(),
+               "client:[{}] requested to merge collections {} {}\n",
+               client->get_id(), col1, col2);
     } break;
 
     case MessageType::Move: {
@@ -260,7 +266,7 @@ protected:
       auto col_to = server_cmd["col_new"].get<std::string_view>();
       auto wall = server_cmd["wall"].get<std::string_view>();
 
-      if (auto cache_frm = m_cache.get_cache(col_frm)) {
+      if (auto cache_frm_opt = m_cache.get_cache(col_frm)) {
       }
     } break;
 

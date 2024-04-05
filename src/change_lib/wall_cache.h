@@ -36,6 +36,8 @@ public:
       typename std::vector<cache_t>::const_reverse_iterator;
 
   cache() = default;
+  explicit cache(size_type size) noexcept
+      : m_list(std::vector<cache_t>(size)) {}
 
   [[nodiscard]] bool contains(const Value &val) const noexcept {
     auto rng_it = ranges::find(m_list, val, &cache_t::cache_value);
@@ -62,8 +64,14 @@ public:
   [[nodiscard]] bool modified() const noexcept { return m_modified; }
 
   // Iterators
-  [[nodiscard]] iterator begin() noexcept { return std::begin(m_list); }
-  [[nodiscard]] iterator end() noexcept { return std::end(m_list); }
+  [[nodiscard]] iterator begin() noexcept {
+    m_modified = true;
+    return std::begin(m_list);
+  }
+  [[nodiscard]] iterator end() noexcept {
+    m_modified = true;
+    return std::end(m_list);
+  }
 
   [[nodiscard]] const_iterator begin() const noexcept {
     return std::cbegin(m_list);
@@ -80,9 +88,13 @@ public:
   }
 
   [[nodiscard]] reverse_iterator rbegin() noexcept {
+    m_modified = true;
     return std::rbegin(m_list);
   }
-  [[nodiscard]] reverse_iterator rend() noexcept { return std::rend(m_list); }
+  [[nodiscard]] reverse_iterator rend() noexcept {
+    m_modified = true;
+    return std::rend(m_list);
+  }
 
   [[nodiscard]] const_reverse_iterator rbegin() const noexcept {
     return rbegin();

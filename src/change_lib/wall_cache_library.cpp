@@ -107,6 +107,24 @@ std::vector<std::string> cache_lib::cache_list() const noexcept {
   return ret;
 }
 
+void cache_lib::merge_cache(std::string_view col1,
+                            std::string_view col2) noexcept {
+  auto col1_it = ranges::find(m_cache_vec, col1, &cache_store::first);
+  auto col2_it = ranges::find(m_cache_vec, col2, &cache_store::first);
+
+  cache_store new_store(col1.data(),
+                        (col1_it->second.size() + col2_it->second.size()));
+
+  if ((col1_it != ranges::end(m_cache_vec)) &&
+      (col2_it != ranges::end(m_cache_vec))) {
+    std::ranges::merge(col1_it->second, col2_it->second,
+                       new_store.second.begin());
+    remove(col1);
+    remove(col2);
+    m_cache_vec.emplace_back(new_store);
+  }
+}
+
 void cache_lib::serialize() const {
   if (modified()) {
     nlohmann::json obj;

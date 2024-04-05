@@ -30,6 +30,8 @@ public:
   void rename_store(std::string_view from_name,
                     std::string_view to_name) noexcept;
 
+  void merge_cache(std::string_view col1, std::string_view col2) noexcept;
+
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 

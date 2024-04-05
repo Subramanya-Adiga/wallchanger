@@ -65,4 +65,19 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     lib.change_active("cache1");
     REQUIRE(lib.get_current().value().get() == cache);
   }
+  SECTION("merge") {
+    wallchanger::cache_lib lib;
+    lib.insert("cache1", cache);
+    cache2.insert("merge"s, 0);
+    cache2.insert("test"s, 0);
+    cache2.insert("brave"s, 0);
+
+    lib.insert("cache2", cache2);
+    wallchanger::cache_lib::cache_lib_type new_cache(cache.size() +
+                                                     cache2.size());
+    std::ranges::merge(cache, cache2, new_cache.begin());
+    lib.merge_cache("cache1", "cache2");
+    auto merged = lib.get_cache("cache1").value().get();
+    REQUIRE(new_cache == merged);
+  }
 }
