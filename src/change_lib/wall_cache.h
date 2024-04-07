@@ -54,9 +54,22 @@ public:
     }
   }
 
+  void insert_elem(cache_t &&item) {
+    if (auto item_itr = std::ranges::find(m_list, item);
+        item_itr == std::ranges::end(m_list)) {
+      m_list.emplace_back(std::move(item));
+      m_modified = true;
+    }
+  }
+
   void clear() noexcept {
     m_list.clear();
     m_modified = true;
+  }
+
+  iterator erase(const_iterator pos) noexcept {
+    m_modified = true;
+    return m_list.erase(pos);
   }
 
   [[nodiscard]] size_type size() const noexcept { return m_list.size(); }

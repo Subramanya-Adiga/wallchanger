@@ -32,6 +32,9 @@ public:
 
   void merge_cache(std::string_view col1, std::string_view col2) noexcept;
 
+  void move_cache_item(std::string_view source, std::string_view dest,
+                       std::string_view item_name) noexcept;
+
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 

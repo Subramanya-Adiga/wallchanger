@@ -266,8 +266,12 @@ protected:
       auto col_to = server_cmd["col_new"].get<std::string_view>();
       auto wall = server_cmd["wall"].get<std::string_view>();
 
-      if (auto cache_frm_opt = m_cache.get_cache(col_frm)) {
-      }
+      m_cache.move_cache_item(col_frm, col_to, wall);
+      client->send_message(m_success());
+      LOG_INFO(get_logger_name(),
+               "client:[{}] requested to move wallpaper {} from {} to {}\n",
+               client->get_id(), wall, col_frm, col_to);
+
     } break;
 
       // Server Status Messages

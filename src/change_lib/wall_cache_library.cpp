@@ -125,6 +125,22 @@ void cache_lib::merge_cache(std::string_view col1,
   }
 }
 
+void cache_lib::move_cache_item(std::string_view source, std::string_view dest,
+                                std::string_view item_name) noexcept {
+  auto src = std::ranges::find(m_cache_vec, source, &cache_store::first);
+  auto dst = std::ranges::find(m_cache_vec, dest, &cache_store::first);
+
+  if ((src != std::ranges::end(m_cache_vec)) &&
+      (dst != std::ranges::end(m_cache_vec))) {
+    if (auto itm_itr = std::ranges::find(src->second, item_name,
+                                         &cache_type::value_type::cache_value);
+        itm_itr != std::ranges::end(src->second)) {
+      dst->second.insert_elem(std::move(*itm_itr));
+      src->second.erase(itm_itr);
+    }
+  }
+}
+
 void cache_lib::serialize() const {
   if (modified()) {
     nlohmann::json obj;
