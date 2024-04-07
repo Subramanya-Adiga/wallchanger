@@ -23,7 +23,6 @@ public:
         while (!m_stop) {
           m_server.update(-1, false);
         }
-        m_server.stop();
       });
     }
     WaitForSingleObject(m_exec.native_handle(), INFINITE);
