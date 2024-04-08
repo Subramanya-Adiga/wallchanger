@@ -1,12 +1,19 @@
 #ifdef _WINDOWS
+#ifndef _DEBUG
 #include "change_service.h"
+#endif
 
 #ifdef _DEBUG
-wallchanger::change_service service_debug;
-bool WINAPI close_handle(DWORD /*sig*/) {
-  service_debug.stop(0);
+#include "change_server.h"
+namespace {
+bool stop_server = false;
+}
+
+bool WINAPI close_handle([[maybe_unused]] DWORD sig) {
+  stop_server = true;
   return true;
 }
+
 #endif
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
@@ -15,10 +22,18 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   wallchanger::platform::win32::service_base::run(service);
 #else
   SetConsoleCtrlHandler((PHANDLER_ROUTINE)close_handle, 1);
-  service_debug.start(0);
+  wallchanger::change_server server(wallchanger::helper::s_port_number);
+  bool running = server.start();
+  if (running) {
+    while (!stop_server) {
+      server.update(-1, false);
+    }
+    server.store_state();
+  }
 #endif
   return 0;
 }
+
 #endif
 
 #ifdef __linux__
