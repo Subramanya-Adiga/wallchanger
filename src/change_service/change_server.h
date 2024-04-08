@@ -152,31 +152,34 @@ protected:
     case wallchanger::MessageType::Create_Collection: {
 
       wallchanger::cache_lib::cache_lib_type cache;
-      auto col_path = server_cmd["col_path"].get<std::string>();
-      auto crc_loc = static_cast<uint32_t>(
-          wallchanger::helper::crc(col_path.begin(), col_path.end()));
-      int counter = 0;
-      auto inserter = [&](const std::filesystem::directory_entry &path) {
-        if (!path.is_directory()) {
-          counter++;
-          cache.insert(path.path().filename().string(), crc_loc);
+      if (!server_cmd["col_empty"].get<bool>()) {
+        auto col_path = server_cmd["col_path"].get<std::string>();
+        auto crc_loc = static_cast<uint32_t>(
+            wallchanger::helper::crc(col_path.begin(), col_path.end()));
+
+        auto inserter = [&](const std::filesystem::directory_entry &path) {
+          if (!path.is_directory()) {
+            cache.insert(path.path().filename().string(), crc_loc);
+          }
+        };
+
+        if (!server_cmd["recursive"].get<bool>()) {
+          ranges::for_each(std::filesystem::directory_iterator(col_path),
+                           inserter);
+        } else {
+          ranges::for_each(
+              std::filesystem::recursive_directory_iterator(col_path),
+              inserter);
         }
-      };
 
-      if (!server_cmd["recursive"].get<bool>()) {
-        ranges::for_each(std::filesystem::directory_iterator(col_path),
-                         inserter);
-      } else {
-        ranges::for_each(
-            std::filesystem::recursive_directory_iterator(col_path), inserter);
+        m_path_buf.insert(col_path);
+        LOG_INFO(get_logger_name(), "created collection:[{}] path:[{}]\n",
+                 server_cmd["new_col_name"].get<std::string>(),
+                 server_cmd["col_path"].get<std::string>());
       }
-
-      m_path_buf.insert(col_path);
       m_cache.insert(server_cmd["new_col_name"].get<std::string>(), cache);
-      LOG_INFO(get_logger_name(), "created collection:[{}] path:[{}]\n",
-               server_cmd["new_col_name"].get<std::string>(),
-               server_cmd["col_path"].get<std::string>());
-
+      LOG_INFO(get_logger_name(), "created collection:[{}]\n",
+               server_cmd["new_col_name"].get<std::string>());
       client->send_message(m_success());
     } break;
 
@@ -187,7 +190,7 @@ protected:
       auto path_crc = static_cast<uint32_t>(
           wallchanger::helper::crc(wall_path.begin(), wall_path.end()));
       if (auto dat = m_cache.get_cache(col_name)) {
-        auto cache = dat.value().get();
+        auto &cache = dat.value().get();
 
         cache.insert(wall.filename().string(), path_crc);
         m_path_buf.insert(wall_path);

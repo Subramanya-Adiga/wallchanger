@@ -139,7 +139,13 @@ void wallchanger::application::m_collection_cmds() {
     auto res = m_option_map["create"].as<std::vector<std::string>>();
     nlohmann::json msg_new;
     msg_new["new_col_name"] = res[0];
-    msg_new["col_path"] = res[1];
+    if (res.size() >= 2) {
+      msg_new["col_empty"] = false;
+      msg_new["col_path"] = res[1];
+    } else {
+      msg_new["col_path"] = {};
+      msg_new["col_empty"] = true;
+    }
     msg_new["recursive"] = false;
     m_client.send_message(
         message_helper::json_to_msg(MessageType::Create_Collection, msg_new));
