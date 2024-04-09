@@ -164,10 +164,10 @@ protected:
         };
 
         if (!server_cmd["recursive"].get<bool>()) {
-          ranges::for_each(std::filesystem::directory_iterator(col_path),
-                           inserter);
+          std::ranges::for_each(std::filesystem::directory_iterator(col_path),
+                                inserter);
         } else {
-          ranges::for_each(
+          std::ranges::for_each(
               std::filesystem::recursive_directory_iterator(col_path),
               inserter);
         }

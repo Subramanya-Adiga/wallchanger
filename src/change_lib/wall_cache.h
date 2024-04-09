@@ -40,8 +40,8 @@ public:
       : m_list(std::vector<cache_t>(size)) {}
 
   [[nodiscard]] bool contains(const Value &val) const noexcept {
-    auto rng_it = ranges::find(m_list, val, &cache_t::cache_value);
-    return (rng_it != ranges::end(m_list));
+    auto rng_it = std::ranges::find(m_list, val, &cache_t::cache_value);
+    return (rng_it != std::ranges::end(m_list));
   }
 
   template <typename val>

@@ -360,8 +360,8 @@ bool wallchanger::platform::win32::service_helper::is_installed() {
     }
   } while (!quit);
 
-  auto rng_it = ranges::find(vec, m_name);
-  if (rng_it != ranges::end(vec)) {
+  auto rng_it = std::ranges::find(vec, m_name);
+  if (rng_it != std::ranges::end(vec)) {
     found = true;
   }
 

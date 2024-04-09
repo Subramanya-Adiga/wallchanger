@@ -53,8 +53,8 @@ private:
   std::string m_active_name;
   inline void m_clear_empty() noexcept {
     if (!is_empty()) {
-      ranges::actions::drop_while(
-          m_cache_vec, [](auto &type) { return type.second.empty(); });
+      auto res = std::ranges::remove_if(
+          m_cache_vec, [](auto &&data) { return data.second.empty(); });
     }
   }
 };

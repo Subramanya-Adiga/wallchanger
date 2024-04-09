@@ -33,17 +33,17 @@ void path_table::insert(std::filesystem::path path) {
 std::optional<path_table::path_ref>
 path_table::get(uint32_t id) const noexcept {
   if (exists(id)) {
-    return ranges::find(m_store, id,
-                        &std::pair<uint32_t, std::filesystem::path>::first)
+    return std::ranges::find(m_store, id,
+                             &std::pair<uint32_t, std::filesystem::path>::first)
         ->second;
   }
   return std::nullopt;
 }
 
 bool path_table::exists(uint32_t id) const noexcept {
-  auto itr = ranges::find(m_store, id,
-                          &std::pair<uint32_t, std::filesystem::path>::first);
-  return (itr != ranges::end(m_store));
+  auto itr = std::ranges::find(
+      m_store, id, &std::pair<uint32_t, std::filesystem::path>::first);
+  return (itr != std::ranges::end(m_store));
 }
 
 void path_table::store() const noexcept {

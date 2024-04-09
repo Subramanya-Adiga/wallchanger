@@ -7,14 +7,15 @@ wallchanger::application::application(std::span<char *> args) {
   pos.add("command", 1).add("subargs", -1);
 
   // Initialize All Commandgroups
-  ranges::for_each(m_group_name, [&](auto &data) {
+  std::ranges::for_each(m_group_name, [&](auto &data) {
     m_group_vec.emplace_back(data, po::options_description(data));
   });
 
   // Loop To Add Appropriate Commandline Arguments To commandgroup
   for (auto &&[group_name, command_line] : m_cmds) {
-    auto group = ranges::find(m_group_vec, group_name, &commandgroup::first);
-    ranges::for_each(command_line, [&](auto &data) {
+    auto group =
+        std::ranges::find(m_group_vec, group_name, &commandgroup::first);
+    std::ranges::for_each(command_line, [&](auto &data) {
       if (std::get<value>(data) != nullptr) {
         group->second.add_options()(std::get<cmd>(data).data(),
                                     std::get<value>(data),
@@ -43,16 +44,16 @@ int wallchanger::application::run() {
     fmt::print("\nusage: wallchanger [command] [argument]\n\n");
     // subrange to exclude first 2 options
     auto commandline_range =
-        ranges::make_subrange(m_group_vec[GLOBAL].second.options().begin() + 2,
+        std::ranges::subrange(m_group_vec[GLOBAL].second.options().begin() + 2,
                               m_group_vec[GLOBAL].second.options().end());
 
-    ranges::for_each(commandline_range, [](auto data) {
+    std::ranges::for_each(commandline_range, [](auto data) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
                  data->description());
     });
     // subrange to exclude first subcommand
     auto command_range =
-        ranges::make_subrange(m_group_name.begin() + 1, m_group_name.end());
+        std::ranges::subrange(m_group_name.begin() + 1, m_group_name.end());
     fmt::print("\nAvaliable commands: {}\n", fmt::join(command_range, " , "));
   }
 
@@ -126,7 +127,7 @@ void wallchanger::application::m_process_commands(subcommand_e sub_cmd) {
             m_option_map);
 
   if (m_option_map.count("help") != 0U) {
-    ranges::for_each(m_group_vec[sub_cmd].second.options(), [](auto data) {
+    std::ranges::for_each(m_group_vec[sub_cmd].second.options(), [](auto data) {
       fmt::print("{1:<20} {0:^15} {2:<20}\n", "", data->format_name(),
                  data->description());
     });

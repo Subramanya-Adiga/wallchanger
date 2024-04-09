@@ -8,8 +8,8 @@ cache_lib::cache_lib(bool load) {
   if (load) {
     if (deserialize()) {
       auto rng_it =
-          ranges::find(m_cache_vec, m_active_name, &cache_store::first);
-      if (rng_it != ranges::end(m_cache_vec)) {
+          std::ranges::find(m_cache_vec, m_active_name, &cache_store::first);
+      if (rng_it != std::ranges::end(m_cache_vec)) {
         m_current = *rng_it;
       } else {
         m_current = m_cache_vec.front();
@@ -29,7 +29,7 @@ void cache_lib::insert(std::string name, cache_lib_type value) noexcept {
 std::optional<cache_lib::cache_lib_cref>
 cache_lib::get_cache(std::string_view name) const noexcept {
   if (exists(name)) {
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
+    auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
     return rng_it->second;
   }
   return {};
@@ -38,7 +38,7 @@ cache_lib::get_cache(std::string_view name) const noexcept {
 std::optional<cache_lib::cache_lib_ref>
 cache_lib::get_cache(std::string_view name) noexcept {
   if (exists(name)) {
-    auto itr = ranges::find(m_cache_vec, name, &cache_store::first);
+    auto itr = std::ranges::find(m_cache_vec, name, &cache_store::first);
     return itr->second;
   }
   return std::nullopt;
@@ -46,7 +46,8 @@ cache_lib::get_cache(std::string_view name) noexcept {
 
 void cache_lib::change_active(std::string_view new_active) noexcept {
   if (exists(new_active)) {
-    auto rng_it = ranges::find(m_cache_vec, new_active, &cache_store::first);
+    auto rng_it =
+        std::ranges::find(m_cache_vec, new_active, &cache_store::first);
     m_active_name = rng_it->first;
     m_current = *rng_it;
   }
@@ -55,7 +56,8 @@ void cache_lib::change_active(std::string_view new_active) noexcept {
 void cache_lib::rename_store(std::string_view from_name,
                              std::string_view to_name) noexcept {
   if (exists(from_name) && (!exists(to_name))) {
-    auto rng_it = ranges::find(m_cache_vec, from_name, &cache_store::first);
+    auto rng_it =
+        std::ranges::find(m_cache_vec, from_name, &cache_store::first);
     rng_it->first = to_name;
     if (from_name == m_active_name) {
       m_active_name = to_name;
@@ -65,7 +67,7 @@ void cache_lib::rename_store(std::string_view from_name,
 
 void cache_lib::remove(std::string_view name) noexcept {
   if (exists(name)) {
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
+    auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
     rng_it->second.clear();
     m_clear_empty();
   }
@@ -75,8 +77,8 @@ bool cache_lib::is_empty() const noexcept { return m_cache_vec.empty(); }
 
 bool cache_lib::exists(std::string_view name) const noexcept {
   if (!is_empty()) {
-    auto rng_it = ranges::find(m_cache_vec, name, &cache_store::first);
-    if (rng_it != ranges::end(m_cache_vec)) {
+    auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
+    if (rng_it != std::ranges::end(m_cache_vec)) {
       return (rng_it->first == name);
     }
   }
@@ -87,7 +89,7 @@ size_t cache_lib::cache_count() const noexcept { return m_cache_vec.size(); }
 
 bool wallchanger::cache_lib::modified() const noexcept {
   if (!is_empty()) {
-    auto rng_it = ranges::find_if(
+    auto rng_it = std::ranges::find_if(
         m_cache_vec, [](auto &&type) { return type.second.modified(); });
     return rng_it->second.modified();
   }
@@ -109,14 +111,14 @@ std::vector<std::string> cache_lib::cache_list() const noexcept {
 
 void cache_lib::merge_cache(std::string_view col1,
                             std::string_view col2) noexcept {
-  auto col1_it = ranges::find(m_cache_vec, col1, &cache_store::first);
-  auto col2_it = ranges::find(m_cache_vec, col2, &cache_store::first);
+  auto col1_it = std::ranges::find(m_cache_vec, col1, &cache_store::first);
+  auto col2_it = std::ranges::find(m_cache_vec, col2, &cache_store::first);
 
   cache_store new_store(col1.data(),
                         (col1_it->second.size() + col2_it->second.size()));
 
-  if ((col1_it != ranges::end(m_cache_vec)) &&
-      (col2_it != ranges::end(m_cache_vec))) {
+  if ((col1_it != std::ranges::end(m_cache_vec)) &&
+      (col2_it != std::ranges::end(m_cache_vec))) {
     std::ranges::merge(col1_it->second, col2_it->second,
                        new_store.second.begin());
     remove(col1);
