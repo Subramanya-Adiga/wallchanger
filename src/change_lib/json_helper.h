@@ -68,7 +68,9 @@ template <typename value> struct adl_serializer<wallchanger::cache<value>> {
 template <typename T> struct adl_serializer<std::pair<std::string, T>> {
   static void to_json(json &serialize_obj,
                       const std::pair<std::string, T> &rhs) {
-    serialize_obj = nlohmann::json{{"Name", rhs.first}, {"Store", rhs.second}};
+    serialize_obj = nlohmann::json{{"Name", rhs.first},
+                                   {"Count", rhs.second.size()},
+                                   {"Store", rhs.second}};
   }
 
   static void from_json(const json &serialize_obj,
