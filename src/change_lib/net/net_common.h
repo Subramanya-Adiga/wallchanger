@@ -52,7 +52,7 @@ constexpr std::uint_fast32_t crc(InputIterator first, InputIterator last) {
              });
 }
 
-static uint32_t gen_id() {
+[[maybe_unused]] static uint32_t gen_id() {
   std::random_device random_device;
   std::mt19937 generator(random_device());
   std::uniform_int_distribution<uint32_t> dist;

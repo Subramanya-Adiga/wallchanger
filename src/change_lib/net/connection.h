@@ -27,7 +27,8 @@ public:
   }
   [[nodiscard]] uint32_t get_id() const { return m_id; }
 
-  void connect_to_client(server_interface<T> *server, uint32_t id = 0) {
+  void connect_to_client([[maybe_unused]] server_interface<T> *server,
+                         uint32_t id = 0) {
     if (m_owner == owner::server) {
       if (m_socket.is_open()) {
         m_connected = true;
@@ -42,7 +43,8 @@ public:
     if (m_owner == owner::client) {
       asio::async_connect(
           m_socket, endpoint,
-          [this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
+          [this](std::error_code ec,
+                 [[maybe_unused]] asio::ip::tcp::endpoint endpoint) {
             if (!ec) {
               m_connected = true;
               read_header();

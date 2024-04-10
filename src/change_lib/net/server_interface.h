@@ -128,15 +128,20 @@ public:
   [[nodiscard]] std::string_view get_logger_name() const { return logger_name; }
 
 protected:
-  virtual bool on_client_connect(std::shared_ptr<connection<T>> client) {
+  virtual bool
+  on_client_connect([[maybe_unused]] std::shared_ptr<connection<T>> client) {
     return false;
   }
-  virtual void on_client_disconnect(std::shared_ptr<connection<T>> client) {}
-  virtual void on_message(std::shared_ptr<connection<T>> client,
-                          message<T> &msg) {}
+  virtual void
+  on_client_disconnect([[maybe_unused]] std::shared_ptr<connection<T>> client) {
+  }
+  virtual void
+  on_message([[maybe_unused]] std::shared_ptr<connection<T>> client,
+             [[maybe_unused]] message<T> &msg) {}
 
 public:
-  virtual void on_client_validated(std::shared_ptr<connection<T>> client) {}
+  virtual void
+  on_client_validated([[maybe_unused]] std::shared_ptr<connection<T>> client) {}
 
 protected:
   connect_queue<owned_message<T>> m_incomming;

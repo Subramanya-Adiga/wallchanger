@@ -26,7 +26,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   bool running = server.start();
   if (running) {
     while (!stop_server) {
-      server.update(-1, false);
+      server.update();
     }
     server.store_state();
   }
