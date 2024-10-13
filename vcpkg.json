@@ -1,5 +1,6 @@
 {
   "name": "wallchanger",
+  "builtin-baseline": "9558037875497b9db8cf38fcd7db68ec661bffe7",
   "version-string": "1.0.0.0",
   "dependencies": [
     "range-v3",
@@ -12,5 +13,11 @@
     "nlohmann-json",
     "asio",
     "lua"
+  ],
+  "overrides": [
+    {
+      "name": "fmt",
+      "version": "10.1.1"
+    }
   ]
 }
