@@ -17,7 +17,8 @@ public:
   cache_lib() = default;
   explicit cache_lib(bool load);
 
-  void insert(std::string name, cache_lib_type value) noexcept;
+  [[nodiscard]] outcome::result<void> insert(std::string name,
+                                             cache_lib_type value) noexcept;
 
   [[nodiscard]] std::optional<cache_lib_cref>
   get_cache(std::string_view name) const noexcept;
@@ -27,9 +28,10 @@ public:
 
   [[nodiscard]] std::optional<cache_lib_cref> get_current() const noexcept;
 
-  void change_active(std::string_view new_active) noexcept;
-  void rename_store(std::string_view from_name,
-                    std::string_view to_name) noexcept;
+  [[nodiscard]] outcome::result<void>
+  change_active(std::string_view new_active) noexcept;
+  [[nodiscard]] outcome::result<void>
+  rename_store(std::string_view from_name, std::string_view to_name) noexcept;
 
   [[nodiscard]] outcome::result<void>
   merge_cache(std::string_view col1, std::string_view col2) noexcept;
@@ -41,7 +43,7 @@ public:
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 
-  void remove(std::string_view name) noexcept;
+  [[nodiscard]] outcome::result<void> remove(std::string_view name) noexcept;
   [[nodiscard]] bool is_empty() const noexcept;
   [[nodiscard]] bool modified() const noexcept;
 
