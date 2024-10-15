@@ -1,5 +1,6 @@
 #include "wall_cache_library.h"
 #include "json_helper.h"
+#include "wall_error.hpp"
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -109,38 +110,48 @@ std::vector<std::string> cache_lib::cache_list() const noexcept {
   return ret;
 }
 
-void cache_lib::merge_cache(std::string_view col1,
-                            std::string_view col2) noexcept {
-  auto col1_it = std::ranges::find(m_cache_vec, col1, &cache_store::first);
-  auto col2_it = std::ranges::find(m_cache_vec, col2, &cache_store::first);
+outcome::result<void> cache_lib::merge_cache(std::string_view col1,
+                                             std::string_view col2) noexcept {
+  if (col1 != col2) {
+    if (exists(col1) && exists(col2)) {
+      auto col1_it = std::ranges::find(m_cache_vec, col1, &cache_store::first);
+      auto col2_it = std::ranges::find(m_cache_vec, col2, &cache_store::first);
 
-  cache_store new_store(col1.data(),
-                        (col1_it->second.size() + col2_it->second.size()));
+      cache_store new_store(col1.data(),
+                            (col1_it->second.size() + col2_it->second.size()));
 
-  if ((col1_it != std::ranges::end(m_cache_vec)) &&
-      (col2_it != std::ranges::end(m_cache_vec))) {
-    std::ranges::merge(col1_it->second, col2_it->second,
-                       new_store.second.begin());
-    remove(col1);
-    remove(col2);
-    m_cache_vec.emplace_back(new_store);
+      std::ranges::merge(col1_it->second, col2_it->second,
+                         new_store.second.begin());
+      remove(col1);
+      remove(col2);
+      m_cache_vec.emplace_back(new_store);
+    }
+    return wall_errc::cache_does_not_exists;
   }
+  return wall_errc::cache_frm_cache_to_same;
 }
 
-void cache_lib::move_cache_item(std::string_view source, std::string_view dest,
-                                std::string_view item_name) noexcept {
-  auto src = std::ranges::find(m_cache_vec, source, &cache_store::first);
-  auto dst = std::ranges::find(m_cache_vec, dest, &cache_store::first);
+outcome::result<void>
+cache_lib::move_cache_item(std::string_view source, std::string_view dest,
+                           std::string_view item_name) noexcept {
+  if ((source != dest) && (dest != item_name)) {
+    if (exists(source) && exists(dest)) {
+      auto src = std::ranges::find(m_cache_vec, source, &cache_store::first);
+      auto dst = std::ranges::find(m_cache_vec, dest, &cache_store::first);
 
-  if ((src != std::ranges::end(m_cache_vec)) &&
-      (dst != std::ranges::end(m_cache_vec))) {
-    if (auto itm_itr = std::ranges::find(src->second, item_name,
+      if (src->second.contains(item_name.data())) {
+
+        auto itm_itr = std::ranges::find(src->second, item_name,
                                          &cache_type::value_type::cache_value);
-        itm_itr != std::ranges::end(src->second)) {
-      dst->second.insert_elem(std::move(*itm_itr));
-      src->second.erase(itm_itr);
+
+        dst->second.insert_elem(std::move(*itm_itr));
+        src->second.erase(itm_itr);
+      }
+      return wall_errc::cache_elem_not_exists;
     }
+    return wall_errc::cache_does_not_exists;
   }
+  return wall_errc::cache_frm_cache_to_same;
 }
 
 void cache_lib::serialize() const {

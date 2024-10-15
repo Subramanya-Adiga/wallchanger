@@ -12,7 +12,8 @@
     "benchmark",
     "nlohmann-json",
     "asio",
-    "lua"
+    "lua",
+    "outcome"
   ],
   "overrides": [
     {

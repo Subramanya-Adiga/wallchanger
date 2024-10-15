@@ -7,6 +7,10 @@
 #include <windows.h>
 #endif
 
+#include <outcome.hpp>
+
+namespace outcome = OUTCOME_V2_NAMESPACE;
+
 inline std::string log_directory() {
 #ifdef _WINDOWS
   std::string ret = std::getenv("userprofile");
