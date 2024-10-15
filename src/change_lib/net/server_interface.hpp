@@ -1,7 +1,7 @@
 #pragma once
-#include "connect_queue.h"
-#include "connection.h"
-#include "net_message.h"
+#include "connect_queue.hpp"
+#include "connection.hpp"
+#include "net_message.hpp"
 
 namespace wallchanger::net {
 

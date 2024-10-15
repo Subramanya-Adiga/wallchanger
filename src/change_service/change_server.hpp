@@ -1,14 +1,14 @@
 #pragma once
 #include "change_state.hpp"
-#include "message_type.h"
+#include "message_type.hpp"
 #include <fstream>
-#include <json_helper.h>
-#include <net/server_interface.h>
+#include <json_helper.hpp>
+#include <net/server_interface.hpp>
 #include <nlohmann/json.hpp>
-#include <path_table.h>
+#include <path_table.hpp>
 #include <random>
-#include <wall_cache.h>
-#include <wall_cache_library.h>
+#include <wall_cache.hpp>
+#include <wall_cache_library.hpp>
 #include <wall_error.hpp>
 
 namespace wallchanger {

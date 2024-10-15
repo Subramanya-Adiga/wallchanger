@@ -1,5 +1,5 @@
 #pragma once
-#include "wall_cache.h"
+#include "wall_cache.hpp"
 
 namespace wallchanger {
 

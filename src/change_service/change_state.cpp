@@ -1,6 +1,6 @@
 #include "change_state.hpp"
 #include <fstream>
-#include <net/net_common.h>
+#include <net/net_common.hpp>
 #include <random>
 
 namespace wallchanger {

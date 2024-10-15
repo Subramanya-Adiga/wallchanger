@@ -1,4 +1,4 @@
-#include <wall_cache.h>
+#include <wall_cache.hpp>
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 

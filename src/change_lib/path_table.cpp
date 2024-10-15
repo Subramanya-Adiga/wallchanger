@@ -1,5 +1,5 @@
-#include "path_table.h"
-#include "net/net_common.h"
+#include "path_table.hpp"
+#include "net/net_common.hpp"
 #include <fstream>
 
 namespace wallchanger {

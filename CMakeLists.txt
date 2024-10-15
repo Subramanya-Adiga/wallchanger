@@ -45,7 +45,7 @@ target_precompile_headers(
   <range/v3/all.hpp>
   <fmt/format.h>
   <nlohmann/json.hpp>
-  "src/config.h")
+  "src/config.hpp")
 
 find_package(range-v3 REQUIRED)
 find_package(fmt REQUIRED)

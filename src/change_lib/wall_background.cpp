@@ -1,9 +1,9 @@
-#include "wall_background.h"
+#include "wall_background.hpp"
 
 #ifdef _WINDOWS
-#include "platform/platform_win32.h"
+#include "platform/platform_win32.hpp"
 #elif __linux__
-#include "platform/platform_linux.h"
+#include "platform/platform_linux.hpp"
 #endif
 
 std::string wallchanger::background_handler::get_error() const {

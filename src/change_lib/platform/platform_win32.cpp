@@ -1,5 +1,5 @@
-#include "platform_win32.h"
-#include "windows_helper.h"
+#include "platform_win32.hpp"
+#include "windows_helper.hpp"
 
 wallchanger::platform::win32::get_image_information::get_image_information(
     const std::string &image) {

@@ -1,5 +1,5 @@
-#include <wall_cache.h>
-#include <wall_cache_library.h>
+#include <wall_cache.hpp>
+#include <wall_cache_library.hpp>
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch_all.hpp>
 

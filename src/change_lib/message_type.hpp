@@ -1,5 +1,5 @@
 #pragma once
-#include "net/net_message.h"
+#include "net/net_message.hpp"
 
 namespace wallchanger {
 enum class MessageType : uint32_t {

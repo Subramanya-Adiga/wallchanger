@@ -1,4 +1,4 @@
-#include "platform_linux.h"
+#include "platform_linux.hpp"
 
 namespace wallchanger::platform {
 

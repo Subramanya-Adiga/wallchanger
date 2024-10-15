@@ -1,6 +1,6 @@
 #pragma once
-#include "connect_queue.h"
-#include "net_message.h"
+#include "connect_queue.hpp"
+#include "net_message.hpp"
 
 namespace wallchanger::net {
 template <typename T> class server_interface;

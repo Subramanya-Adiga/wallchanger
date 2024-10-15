@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <filesystem>
-#include <wall_cache.h>
+#include <wall_cache.hpp>
 
 static void BM_SomeFunction(benchmark::State &state) {
   wallchanger::cache<std::string> cache;

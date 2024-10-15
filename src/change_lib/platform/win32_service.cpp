@@ -1,6 +1,6 @@
-#include "win32_service.h"
+#include "win32_service.hpp"
 
-#include "windows_helper.h"
+#include "windows_helper.hpp"
 #include <cstddef>
 
 wallchanger::platform::win32::service_base

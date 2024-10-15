@@ -1,5 +1,5 @@
 #pragma once
-#include "../wall_background.h"
+#include "../wall_background.hpp"
 #include <Shobjidl.h>
 #include <gdiplus.h>
 

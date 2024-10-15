@@ -1,6 +1,6 @@
 #pragma once
-#include <path_table.h>
-#include <wall_cache_library.h>
+#include <path_table.hpp>
+#include <wall_cache_library.hpp>
 
 namespace wallchanger {
 

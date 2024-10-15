@@ -1,4 +1,4 @@
-#include "wall_app.h"
+#include "wall_app.hpp"
 
 wallchanger::application::application(std::span<char *> args) {
   LOGGER_CREATE("changer");

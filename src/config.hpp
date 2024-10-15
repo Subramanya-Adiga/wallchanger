@@ -1,7 +1,7 @@
 #pragma once
 
-#include "log.h"
-#include "scoped_timer.h"
+#include "log.hpp"
+#include "scoped_timer.hpp"
 
 #ifdef _WINDOWS
 #include <windows.h>

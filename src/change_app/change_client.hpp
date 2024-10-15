@@ -1,13 +1,13 @@
 #pragma once
-#include "message_type.h"
+#include "message_type.hpp"
 // #include "platform/platform_win32.h" Used To Get Information About Wallpaper
 // Image
-#include "wall_background.h"
+#include "wall_background.hpp"
 #include <fmt/chrono.h>
-#include <json_helper.h>
-#include <net/client_interface.h>
-#include <wall_cache.h>
-#include <wall_cache_library.h>
+#include <json_helper.hpp>
+#include <net/client_interface.hpp>
+#include <wall_cache.hpp>
+#include <wall_cache_library.hpp>
 
 namespace wallchanger {
 class change_client : public net::client_interface<MessageType> {

@@ -1,5 +1,5 @@
 #include <filesystem>
-#include <wall_cache.h>
+#include <wall_cache.hpp>
 #define CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch_all.hpp>

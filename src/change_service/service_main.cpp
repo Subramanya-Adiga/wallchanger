@@ -1,10 +1,10 @@
 #ifdef _WINDOWS
 #ifndef _DEBUG
-#include "change_service.h"
+#include "change_service.hpp"
 #endif
 
 #ifdef _DEBUG
-#include "change_server.h"
+#include "change_server.hpp"
 namespace {
 bool stop_server = false;
 }
@@ -37,7 +37,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
 #endif
 
 #ifdef __linux__
-#include "change_server.h"
+#include "change_server.hpp"
 namespace {
 bool stop_server = false;
 }

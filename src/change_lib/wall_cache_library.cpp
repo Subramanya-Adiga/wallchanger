@@ -1,5 +1,5 @@
-#include "wall_cache_library.h"
-#include "json_helper.h"
+#include "wall_cache_library.hpp"
+#include "json_helper.hpp"
 #include "wall_error.hpp"
 #include <fstream>
 #include <nlohmann/json.hpp>
