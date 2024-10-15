@@ -55,7 +55,7 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(nlohmann_json REQUIRED)
 find_package(asio REQUIRED)
 find_package(Lua REQUIRED)
-find_package(Outcome REQUIRED)
+find_package(outcome REQUIRED)
 
 target_include_directories(project_dependency INTERFACE ${LUA_INCLUDE_DIR})
 
