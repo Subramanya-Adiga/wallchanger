@@ -1,4 +1,5 @@
 #pragma once
+#include "change_state.hpp"
 #include "message_type.h"
 #include <fstream>
 #include <json_helper.h>
@@ -8,27 +9,19 @@
 #include <random>
 #include <wall_cache.h>
 #include <wall_cache_library.h>
+#include <wall_error.hpp>
 
 namespace wallchanger {
 
 class change_server : public net::server_interface<MessageType> {
 public:
   explicit change_server(uint16_t port)
-      : net::server_interface<MessageType>(port), m_cache(true) {
+      : net::server_interface<MessageType>(port), m_cache(true),
+        m_state(get_logger_name()) {
     m_start_time = std::chrono::system_clock::now();
   }
 
-  void store_state() {
-    if (!m_previous.empty()) {
-      std::ofstream hist(data_directory() + "/data/history.json",
-                         std::ios::out);
-      nlohmann::json obj;
-      obj["histoy"] = m_previous;
-      hist << std::setw(4) << obj << "\n";
-    }
-    m_path_buf.store();
-    m_cache.serialize();
-  }
+  void store_state() { m_state.store_state(); }
 
 protected:
   bool on_client_connect(
@@ -52,51 +45,53 @@ protected:
       wallchanger::net::message<wallchanger::MessageType> &msg) override {
 
     MESSAGE_VALIDATE_BEGIN(msg.validate())
+    m_process(msg.header.id, client, msg);
+    MESSAGE_VALIDATE_END
+  }
 
+  void on_client_validated(
+      std::shared_ptr<net::connection<MessageType>> client) override {}
+
+private:
+  std::chrono::time_point<std::chrono::system_clock> m_start_time;
+
+  wallchanger::state m_state;
+
+  wallchanger::cache_lib m_cache;
+  path_table m_path_buf;
+
+  std::vector<nlohmann::json> m_previous;
+  std::string m_active;
+
+  inline static net::message<MessageType> m_success() {
+    net::message<MessageType> send;
+    send.header.id = MessageType::Status_Success;
+    send << true;
+    return send;
+  }
+
+  void m_process(
+      wallchanger::MessageType type,
+      std::shared_ptr<wallchanger::net::connection<wallchanger::MessageType>>
+          &client,
+      wallchanger::net::message<wallchanger::MessageType> &msg) {
     auto server_cmd = message_helper::msg_to_json(msg);
-    switch (msg.header.id) {
+    switch (type) {
 
     case wallchanger::MessageType::Get_Next_Wallpaper: {
-      std::random_device random_device;
-      std::mt19937 generator(random_device());
-      if (auto dat = m_cache.get_cache(m_active)) {
-        auto cache = dat.value().get();
-        std::uniform_int_distribution<> dist(1, static_cast<int>(cache.size()));
+      auto send = m_state.get_next_wallpaper();
+      client->send_message(
+          message_helper::json_to_msg(MessageType::Get_Next_Wallpaper, send));
 
-        bool found = false;
-        cache_lib::cache_lib_type::value_type ret{};
-        size_t idx{};
-        while (!found) {
-          idx = static_cast<size_t>(dist(generator));
-          if (auto state = cache[idx].cache_state;
-              state == wallchanger::cache_state_e::unused) {
-            ret = cache[idx];
-            cache[idx].cache_state = wallchanger::cache_state_e::used;
-            found = true;
-          }
-        }
-
-        uint32_t path_loc = cache[idx].loc;
-        nlohmann::json send;
-        send["wallpaper"] = ret.cache_value;
-        send["path"] = m_path_buf.get(path_loc).value().get();
-        send["index"] = idx;
-        send["collection"] = m_active;
-        m_previous.push_back(send);
-        client->send_message(
-            message_helper::json_to_msg(MessageType::Get_Next_Wallpaper, send));
-
-        LOG_INFO(get_logger_name(), "Client:[{}] Requested Next Wallpaper\n",
-                 client->get_id());
-      }
+      LOG_INFO(get_logger_name(), "Client:[{}] Requested Next Wallpaper\n",
+               client->get_id());
     } break;
 
     case wallchanger::MessageType::Get_Previous_Wallpaper: {
-      if (!m_previous.empty()) {
-        auto previous = m_previous.back();
-        m_previous.pop_back();
+      auto prev = m_state.get_previous_wallpaper();
+      if (!prev.empty()) {
         client->send_message(message_helper::json_to_msg(
-            MessageType::Get_Previous_Wallpaper, previous));
+            MessageType::Get_Previous_Wallpaper, prev));
         LOG_INFO(get_logger_name(),
                  "Client:[{}] Requested Previous Wallpaper\n",
                  client->get_id());
@@ -113,8 +108,9 @@ protected:
     } break;
 
     case wallchanger::MessageType::Get_Current: {
-      client->send_message(message_helper::json_to_msg(MessageType::Get_Current,
-                                                       m_previous.back()));
+      auto cur = m_state.get_next_wallpaper();
+      client->send_message(
+          message_helper::json_to_msg(MessageType::Get_Current, cur));
       LOG_INFO(get_logger_name(), "Client:[{}] Requested Next Wallpaper\n",
                client->get_id());
     } break;
@@ -150,51 +146,14 @@ protected:
     } break;
 
     case wallchanger::MessageType::Create_Collection: {
-
-      wallchanger::cache_lib::cache_lib_type cache;
-      if (!server_cmd["col_empty"].get<bool>()) {
-        auto col_path = server_cmd["col_path"].get<std::string>();
-        auto crc_loc = static_cast<uint32_t>(
-            wallchanger::helper::crc(col_path.begin(), col_path.end()));
-
-        auto inserter = [&](const std::filesystem::directory_entry &path) {
-          if (!path.is_directory()) {
-            cache.insert(path.path().filename().string(), crc_loc);
-          }
-        };
-
-        if (!server_cmd["recursive"].get<bool>()) {
-          std::ranges::for_each(std::filesystem::directory_iterator(col_path),
-                                inserter);
-        } else {
-          std::ranges::for_each(
-              std::filesystem::recursive_directory_iterator(col_path),
-              inserter);
-        }
-
-        m_path_buf.insert(col_path);
-        LOG_INFO(get_logger_name(), "created collection:[{}] path:[{}]\n",
-                 server_cmd["new_col_name"].get<std::string>(),
-                 server_cmd["col_path"].get<std::string>());
-      }
-      m_cache.insert(server_cmd["new_col_name"].get<std::string>(), cache);
+      m_state.create_collection(server_cmd);
       LOG_INFO(get_logger_name(), "created collection:[{}]\n",
                server_cmd["new_col_name"].get<std::string>());
       client->send_message(m_success());
     } break;
 
     case wallchanger::MessageType::Add_To_Collection: {
-      auto col_name = server_cmd["col_name"].get<std::string>();
-      auto wall = server_cmd["wall"].get<std::filesystem::path>();
-      auto wall_path = wall.parent_path().string();
-      auto path_crc = static_cast<uint32_t>(
-          wallchanger::helper::crc(wall_path.begin(), wall_path.end()));
-      if (auto dat = m_cache.get_cache(col_name)) {
-        auto &cache = dat.value().get();
-
-        cache.insert(wall.filename().string(), path_crc);
-        m_path_buf.insert(wall_path);
-
+      if (m_state.add_to_collection(server_cmd)) {
         LOG_INFO(get_logger_name(), "added wall:[{}] to collection:[{}]\n",
                  server_cmd["col_name"].get<std::string>(),
                  server_cmd["wall"].get<std::string>());
@@ -257,11 +216,13 @@ protected:
     case MessageType::Merge_Collection: {
       auto col1 = server_cmd["col1"].get<std::string_view>();
       auto col2 = server_cmd["col2"].get<std::string_view>();
-      m_cache.merge_cache(col1, col2);
-      client->send_message(m_success());
-      LOG_INFO(get_logger_name(),
-               "client:[{}] requested to merge collections {} {}\n",
-               client->get_id(), col1, col2);
+      auto res = m_cache.merge_cache(col1, col2);
+      if (res) {
+        client->send_message(m_success());
+        LOG_INFO(get_logger_name(),
+                 "client:[{}] requested to merge collections {} {}\n",
+                 client->get_id(), col1, col2);
+      }
     } break;
 
     case MessageType::Move: {
@@ -269,11 +230,12 @@ protected:
       auto col_to = server_cmd["col_new"].get<std::string_view>();
       auto wall = server_cmd["wall"].get<std::string_view>();
 
-      m_cache.move_cache_item(col_frm, col_to, wall);
-      client->send_message(m_success());
-      LOG_INFO(get_logger_name(),
-               "client:[{}] requested to move wallpaper {} from {} to {}\n",
-               client->get_id(), wall, col_frm, col_to);
+      if (m_cache.move_cache_item(col_frm, col_to, wall)) {
+        client->send_message(m_success());
+        LOG_INFO(get_logger_name(),
+                 "client:[{}] requested to move wallpaper {} from {} to {}\n",
+                 client->get_id(), wall, col_frm, col_to);
+      }
 
     } break;
 
@@ -307,23 +269,6 @@ protected:
 
       break;
     }
-    MESSAGE_VALIDATE_END
-  }
-
-  void on_client_validated(
-      std::shared_ptr<net::connection<MessageType>> client) override {}
-
-private:
-  std::chrono::time_point<std::chrono::system_clock> m_start_time;
-  wallchanger::cache_lib m_cache;
-  path_table m_path_buf;
-  std::vector<nlohmann::json> m_previous;
-  std::string m_active;
-  inline static net::message<MessageType> m_success() {
-    net::message<MessageType> send;
-    send.header.id = MessageType::Status_Success;
-    send << true;
-    return send;
   }
 };
 } // namespace wallchanger
