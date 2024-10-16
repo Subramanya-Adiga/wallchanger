@@ -104,5 +104,32 @@ bool state::add_to_collection(const nlohmann::json &server_cmd) noexcept {
   }
   return false;
 }
+bool state::move_collectoion(const nlohmann::json &server_cmd,
+                             uint32_t id) noexcept {
+
+  auto col_frm = server_cmd["col_cur"].get<std::string_view>();
+  auto col_to = server_cmd["col_new"].get<std::string_view>();
+  auto wall = server_cmd["wall"].get<std::string_view>();
+
+  if (m_cache.move_cache_item(col_frm, col_to, wall)) {
+    LOG_INFO(m_logger,
+             "client:[{}] requested to move wallpaper {} from {} to {}\n", id,
+             wall, col_frm, col_to);
+    return true;
+  }
+  return false;
+}
+
+bool state::merge_collection(const nlohmann::json &server_cmd,
+                             uint32_t id) noexcept {
+  auto col1 = server_cmd["col1"].get<std::string_view>();
+  auto col2 = server_cmd["col2"].get<std::string_view>();
+  if (m_cache.merge_cache(col1, col2)) {
+    LOG_INFO(m_logger, "client:[{}] requested to merge collections {} {}\n", id,
+             col1, col2);
+    return true;
+  }
+  return false;
+}
 
 } // namespace wallchanger

@@ -214,27 +214,15 @@ private:
     } break;
 
     case MessageType::Merge_Collection: {
-      auto col1 = server_cmd["col1"].get<std::string_view>();
-      auto col2 = server_cmd["col2"].get<std::string_view>();
-      auto res = m_cache.merge_cache(col1, col2);
-      if (res) {
+      if (m_state.merge_collection(server_cmd, client->get_id())) {
         client->send_message(m_success());
-        LOG_INFO(get_logger_name(),
-                 "client:[{}] requested to merge collections {} {}\n",
-                 client->get_id(), col1, col2);
       }
     } break;
 
     case MessageType::Move: {
-      auto col_frm = server_cmd["col_cur"].get<std::string_view>();
-      auto col_to = server_cmd["col_new"].get<std::string_view>();
-      auto wall = server_cmd["wall"].get<std::string_view>();
 
-      if (m_cache.move_cache_item(col_frm, col_to, wall)) {
+      if (m_state.move_collectoion(server_cmd, client->get_id())) {
         client->send_message(m_success());
-        LOG_INFO(get_logger_name(),
-                 "client:[{}] requested to move wallpaper {} from {} to {}\n",
-                 client->get_id(), wall, col_frm, col_to);
       }
 
     } break;

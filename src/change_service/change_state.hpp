@@ -17,6 +17,9 @@ public:
   void create_collection(const nlohmann::json &server_cmd) noexcept;
   bool add_to_collection(const nlohmann::json &server_cmd) noexcept;
 
+  bool move_collectoion(const nlohmann::json &server_cmd, uint32_t id) noexcept;
+  bool merge_collection(const nlohmann::json &server_cmd, uint32_t id) noexcept;
+
 private:
   std::string_view m_logger;
   wallchanger::cache_lib m_cache;
