@@ -12,13 +12,24 @@ public:
   nlohmann::json get_next_wallpaper() noexcept;
   nlohmann::json get_previous_wallpaper() noexcept;
 
-  std::string_view change_active(std::string_view col) noexcept;
+  [[nodiscard]] bool change_active(const nlohmann::json &server_cmd,
+                                   uint32_t id) noexcept;
 
-  void create_collection(const nlohmann::json &server_cmd) noexcept;
-  bool add_to_collection(const nlohmann::json &server_cmd) noexcept;
+  [[nodiscard]] bool
+  rename_collection(const nlohmann::json &server_cmd) noexcept;
 
-  bool move_collectoion(const nlohmann::json &server_cmd, uint32_t id) noexcept;
-  bool merge_collection(const nlohmann::json &server_cmd, uint32_t id) noexcept;
+  [[nodiscard]] bool
+  create_collection(const nlohmann::json &server_cmd) noexcept;
+  [[nodiscard]] bool
+  add_to_collection(const nlohmann::json &server_cmd) noexcept;
+
+  [[nodiscard]] bool move_collectoion(const nlohmann::json &server_cmd,
+                                      uint32_t id) noexcept;
+  [[nodiscard]] bool merge_collection(const nlohmann::json &server_cmd,
+                                      uint32_t id) noexcept;
+
+  [[nodiscard]] bool
+  remove_collection(const nlohmann::json &server_cmd) noexcept;
 
 private:
   std::string_view m_logger;

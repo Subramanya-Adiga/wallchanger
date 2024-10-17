@@ -1,12 +1,10 @@
 #pragma once
 #include "change_state.hpp"
 #include "message_type.hpp"
-#include <fstream>
 #include <json_helper.hpp>
 #include <net/server_interface.hpp>
 #include <nlohmann/json.hpp>
 #include <path_table.hpp>
-#include <random>
 #include <wall_cache.hpp>
 #include <wall_cache_library.hpp>
 #include <wall_error.hpp>
@@ -135,57 +133,32 @@ private:
 
       // Collection Messages
     case wallchanger::MessageType::Change_Active_Collection: {
-      m_active.resize(msg.body.size());
-      std::memcpy(m_active.data(), msg.body.data(), msg.body.size());
-      m_cache.change_active(m_active);
-      LOG_INFO(get_logger_name(),
-               "Client:[{}] changed active collection to:{} \n",
-               client->get_id(), m_active);
-
-      client->send_message(m_success());
+      if (m_state.change_active(server_cmd, client->get_id())) {
+        client->send_message(m_success());
+      }
     } break;
 
     case wallchanger::MessageType::Create_Collection: {
-      m_state.create_collection(server_cmd);
-      LOG_INFO(get_logger_name(), "created collection:[{}]\n",
-               server_cmd["new_col_name"].get<std::string>());
-      client->send_message(m_success());
+      if (m_state.create_collection(server_cmd)) {
+        client->send_message(m_success());
+      }
     } break;
 
     case wallchanger::MessageType::Add_To_Collection: {
       if (m_state.add_to_collection(server_cmd)) {
-        LOG_INFO(get_logger_name(), "added wall:[{}] to collection:[{}]\n",
-                 server_cmd["col_name"].get<std::string>(),
-                 server_cmd["wall"].get<std::string>());
         client->send_message(m_success());
       }
     } break;
 
     case MessageType::Rename_Collection: {
-      m_cache.rename_store(server_cmd["col_name"].get<std::string>(),
-                           server_cmd["col_name_new"].get<std::string>());
-      client->send_message(m_success());
-      LOG_INFO(get_logger_name(), "created renamed:[{}] to:[{}]\n",
-               server_cmd["col_name"].get<std::string>(),
-               server_cmd["col_name_new"].get<std::string>());
+      if (m_state.rename_collection(server_cmd)) {
+        client->send_message(m_success());
+      }
     } break;
 
     case MessageType::Remove: {
-      if (server_cmd["wall_only"].get<bool>()) {
-        if (auto dat =
-                m_cache.get_cache(server_cmd["col"].get<std::string_view>())) {
-
-          client->send_message(m_success());
-          LOG_INFO(get_logger_name(),
-                   "removed wallpaper:[{}] from collection:[{}]\n",
-                   server_cmd["wall"].get<std::string_view>(),
-                   server_cmd["col"].get<std::string_view>());
-        }
-      } else {
-        m_cache.remove(server_cmd["col"].get<std::string_view>());
+      if (m_state.remove_collection(server_cmd)) {
         client->send_message(m_success());
-        LOG_INFO(get_logger_name(), "removed collection:[{}]\n",
-                 server_cmd["col"].get<std::string_view>());
       }
     } break;
 

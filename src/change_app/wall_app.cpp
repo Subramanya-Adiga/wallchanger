@@ -154,10 +154,10 @@ void wallchanger::application::m_collection_cmds() {
 
   if (m_option_map.count("set-active") != 0U) {
     auto res = m_option_map["set-active"].as<std::string>();
-    net::message<MessageType> msg;
-    msg.header.id = MessageType::Change_Active_Collection;
-    msg << res.c_str();
-    m_client.send_message(msg);
+    nlohmann::json obj;
+    obj["new_active_name"] = res;
+    m_client.send_message(message_helper::json_to_msg(
+        MessageType::Change_Active_Collection, obj));
   }
 
   if (m_option_map.count("list") != 0U) {

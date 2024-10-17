@@ -58,7 +58,30 @@ nlohmann::json state::get_previous_wallpaper() noexcept {
   return {};
 }
 
-void state::create_collection(const nlohmann::json &server_cmd) noexcept {
+bool state::change_active(const nlohmann::json &server_cmd,
+                          uint32_t id) noexcept {
+  auto name = server_cmd["new_active_name"].get<std::string>();
+  if (m_cache.change_active(name)) {
+    LOG_INFO(m_logger, "Client:[{}] changed active collection to:{} \n", id,
+             m_active);
+    return true;
+  }
+  return false;
+}
+
+bool state::rename_collection(const nlohmann::json &server_cmd) noexcept {
+  if (m_cache.rename_store(server_cmd["col_name"].get<std::string>(),
+                           server_cmd["col_name_new"].get<std::string>())) {
+    LOG_INFO(m_logger, "created renamed:[{}] to:[{}]\n",
+             server_cmd["col_name"].get<std::string>(),
+             server_cmd["col_name_new"].get<std::string>());
+    return true;
+  }
+
+  return false;
+}
+
+bool state::create_collection(const nlohmann::json &server_cmd) noexcept {
   wallchanger::cache_lib::cache_lib_type cache;
 
   if (!server_cmd["col_empty"].get<bool>()) {
@@ -85,7 +108,12 @@ void state::create_collection(const nlohmann::json &server_cmd) noexcept {
              server_cmd["new_col_name"].get<std::string>(),
              server_cmd["col_path"].get<std::string>());
   }
-  m_cache.insert(server_cmd["new_col_name"], cache);
+  if (m_cache.insert(server_cmd["new_col_name"], cache)) {
+    LOG_INFO(m_logger, "created collection:[{}]\n",
+             server_cmd["new_col_name"].get<std::string>());
+    return true;
+  }
+  return false;
 }
 
 bool state::add_to_collection(const nlohmann::json &server_cmd) noexcept {
@@ -100,10 +128,14 @@ bool state::add_to_collection(const nlohmann::json &server_cmd) noexcept {
 
     cache.insert(wall.filename().string(), path_crc);
     m_path_buf.insert(wall_path);
+    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n",
+             server_cmd["col_name"].get<std::string>(),
+             server_cmd["wall"].get<std::string>());
     return true;
   }
   return false;
 }
+
 bool state::move_collectoion(const nlohmann::json &server_cmd,
                              uint32_t id) noexcept {
 
@@ -128,6 +160,26 @@ bool state::merge_collection(const nlohmann::json &server_cmd,
     LOG_INFO(m_logger, "client:[{}] requested to merge collections {} {}\n", id,
              col1, col2);
     return true;
+  }
+  return false;
+}
+
+bool state::remove_collection(const nlohmann::json &server_cmd) noexcept {
+  if (server_cmd["wall_only"].get<bool>()) {
+    if (auto dat =
+            m_cache.get_cache(server_cmd["col"].get<std::string_view>())) {
+
+      LOG_INFO(m_logger, "removed wallpaper:[{}] from collection:[{}]\n",
+               server_cmd["wall"].get<std::string_view>(),
+               server_cmd["col"].get<std::string_view>());
+      return true;
+    }
+  } else {
+    if (m_cache.remove(server_cmd["col"].get<std::string_view>())) {
+      LOG_INFO(m_logger, "removed collection:[{}]\n",
+               server_cmd["col"].get<std::string_view>());
+      return true;
+    }
   }
   return false;
 }
