@@ -114,21 +114,8 @@ private:
     } break;
 
     case wallchanger::MessageType::Mark_Favorate: {
-      // auto cache =
-      //     m_cache.get_cache(server_cmd["collection"].get<std::string>())
-      //         .value()
-      //         .get();
-      // cache.set_state(
-      //     server_cmd["index"]
-      //         .get<wallchanger::cache_lib::cache_lib_type::key_type>(),
-      //     wallchanger::cache_state_e::favorate);
-      // LOG_INFO(
-      //     get_logger_name(),
-      //     "Client:[{}] Marked {} Wallpaper From Collection {} As Favorate\n",
-      //     client->get_id(), server_cmd["collection"].get<std::string>(),
-      //     cache[server_cmd["index"]
-      //               .get<wallchanger::cache_lib::cache_lib_type::key_type>()]);
-      // client->send_message(m_success());
+      m_state.mark_favorate();
+      client->send_message(m_success());
     } break;
 
       // Collection Messages

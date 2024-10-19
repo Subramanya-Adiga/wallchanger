@@ -18,10 +18,23 @@ void state::store_state() noexcept {
   m_cache.serialize();
 }
 
+void state::mark_favorate() noexcept {
+  auto cur = m_previous.back();
+  auto cur_cache = m_cache.get_current()->get();
+
+  auto fnd_it =
+      std::ranges::find(cur_cache, cur["wallpaper"].get<std::string_view>(),
+                        &cache_lib::cache_lib_type::value_type::cache_value);
+  fnd_it->cache_state = cache_state_e::favorate;
+  LOG_INFO(m_logger, "Marked [{}] Wallpaper From [{}] As Favorate",
+           cur["wallpaper"].get<std::string_view>(),
+           m_cache.active_cache_name());
+}
+
 nlohmann::json state::get_next_wallpaper() noexcept {
   std::random_device random_device;
   std::mt19937 generator(random_device());
-  if (auto dat = m_cache.get_cache(m_active)) {
+  if (auto dat = m_cache.get_cache(m_cache.active_cache_name())) {
     auto cache = dat.value().get();
     std::uniform_int_distribution<> dist(1, static_cast<int>(cache.size()));
 
@@ -43,7 +56,7 @@ nlohmann::json state::get_next_wallpaper() noexcept {
     send["wallpaper"] = ret.cache_value;
     send["path"] = m_path_buf.get(path_loc).value().get();
     send["index"] = idx;
-    send["collection"] = m_active;
+    send["collection"] = m_cache.active_cache_name();
     m_previous.push_back(send);
     return send;
   }
@@ -63,7 +76,7 @@ bool state::change_active(const nlohmann::json &server_cmd,
   auto name = server_cmd["new_active_name"].get<std::string>();
   if (m_cache.change_active(name)) {
     LOG_INFO(m_logger, "Client:[{}] changed active collection to:{} \n", id,
-             m_active);
+             m_cache.active_cache_name());
     return true;
   }
   return false;

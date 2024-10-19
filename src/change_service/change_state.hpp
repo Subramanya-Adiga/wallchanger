@@ -12,6 +12,8 @@ public:
   nlohmann::json get_next_wallpaper() noexcept;
   nlohmann::json get_previous_wallpaper() noexcept;
 
+  void mark_favorate() noexcept;
+
   [[nodiscard]] bool change_active(const nlohmann::json &server_cmd,
                                    uint32_t id) noexcept;
 
@@ -36,6 +38,5 @@ private:
   wallchanger::cache_lib m_cache;
   path_table m_path_buf;
   std::vector<nlohmann::json> m_previous;
-  std::string m_active;
 };
 } // namespace wallchanger
