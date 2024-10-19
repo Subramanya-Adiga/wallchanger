@@ -20,6 +20,15 @@ cache_lib::cache_lib(bool load) {
   }
 }
 
+std::string_view cache_lib::active_cache_name() const noexcept {
+  return m_active_name;
+}
+
+std::optional<cache_lib::cache_lib_cref>
+cache_lib::get_current() const noexcept {
+  return m_current.second;
+}
+
 outcome::result<void> cache_lib::insert(std::string name,
                                         cache_lib_type value) noexcept {
   if (!exists(name)) {
@@ -105,11 +114,6 @@ bool wallchanger::cache_lib::modified() const noexcept {
     return rng_it->second.modified();
   }
   return false;
-}
-
-std::optional<cache_lib::cache_lib_cref>
-cache_lib::get_current() const noexcept {
-  return m_current.second;
 }
 
 std::vector<std::string> cache_lib::cache_list() const noexcept {

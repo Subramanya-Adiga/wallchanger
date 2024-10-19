@@ -17,6 +17,10 @@ public:
   cache_lib() = default;
   explicit cache_lib(bool load);
 
+  [[nodiscard]] std::string_view active_cache_name() const noexcept;
+
+  [[nodiscard]] std::optional<cache_lib_cref> get_current() const noexcept;
+
   [[nodiscard]] outcome::result<void> insert(std::string name,
                                              cache_lib_type value) noexcept;
 
@@ -25,8 +29,6 @@ public:
 
   [[nodiscard]] std::optional<cache_lib_ref>
   get_cache(std::string_view name) noexcept;
-
-  [[nodiscard]] std::optional<cache_lib_cref> get_current() const noexcept;
 
   [[nodiscard]] outcome::result<void>
   change_active(std::string_view new_active) noexcept;
