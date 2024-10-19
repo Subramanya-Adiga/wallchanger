@@ -171,11 +171,7 @@ void cache_lib::serialize() const {
     nlohmann::json obj;
     obj["total_count"] = m_cache_vec.size();
     obj["active"] = m_current.first;
-    auto obj_array = nlohmann::json::array();
-    for (auto &&entries : m_cache_vec) {
-      obj_array.emplace_back(entries);
-    }
-    obj["cache_libraries"] = obj_array;
+    obj["cache_libraries"] = m_cache_vec;
 
     std::ofstream obj_file(data_directory() + "/data/libraries.json",
                            std::ios::out);
@@ -192,9 +188,7 @@ bool cache_lib::deserialize() {
     nlohmann::json obj;
     obj_file >> obj;
     if (!obj.is_null()) {
-      for (auto &&entries : obj["cache_libraries"]) {
-        m_cache_vec.emplace_back(entries.get<cache_store>());
-      }
+      m_cache_vec = obj["cache_libraries"];
     }
     m_active_name = obj["active"].get<std::string>();
     return true;

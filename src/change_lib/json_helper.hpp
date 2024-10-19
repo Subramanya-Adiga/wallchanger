@@ -43,9 +43,7 @@ template <typename value> struct adl_serializer<wallchanger::cache<value>> {
     } else {
       auto arr = json::array();
       for (auto &&cache_obj : rhs) {
-        arr.push_back(nlohmann::json{{"value", cache_obj.cache_value},
-                                     {"state", cache_obj.cache_state},
-                                     {"loc", cache_obj.loc}});
+        arr.push_back(cache_obj);
       }
       serialize_obj = arr;
     }
@@ -55,11 +53,8 @@ template <typename value> struct adl_serializer<wallchanger::cache<value>> {
                         wallchanger::cache<value> &rhs) {
     if (!serialize_obj.is_null()) {
       rhs.clear();
-      size_t size = 0;
       for (auto &&obj : serialize_obj) {
-        rhs.insert(obj["value"].get<value>(), obj["loc"].get<uint32_t>());
-        rhs[size].cache_state = obj["state"];
-        size++;
+        rhs.insert_elem(obj);
       }
     }
   }
