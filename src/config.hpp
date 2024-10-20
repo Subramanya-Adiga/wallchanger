@@ -3,7 +3,7 @@
 #include "log.hpp"
 #include "scoped_timer.hpp"
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include <windows.h>
 #endif
 
@@ -12,7 +12,7 @@
 namespace outcome = OUTCOME_V2_NAMESPACE;
 
 inline std::string log_directory() {
-#ifdef _WINDOWS
+#ifdef _WIN32
   std::string ret = std::getenv("userprofile");
   return ret + R"(\AppData\Local\Wallchanger\logs\)";
 #endif
@@ -23,7 +23,7 @@ inline std::string log_directory() {
 }
 
 inline std::string data_directory() {
-#ifdef _WINDOWS
+#ifdef _WIN32
   std::string ret = std::getenv("userprofile");
   return ret + R"(\AppData\Local\Wallchanger\)";
 #endif

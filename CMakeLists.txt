@@ -12,13 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(project_options INTERFACE)
 target_compile_features(project_options INTERFACE cxx_std_20)
 
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-   OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-   AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"))
-  target_compile_options(project_options INTERFACE -march=znver2)
-elseif((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_SIMULATE_ID
-                                                   STREQUAL "MSVC"))
-  target_compile_options(project_options INTERFACE /arch:AVX2)
+if(CMAKE_HOST_WIN32)
   target_compile_definitions(project_options INTERFACE _CRT_SECURE_NO_WARNINGS
                                                        NOMINMAX UNICODE)
 endif()

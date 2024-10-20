@@ -1,4 +1,4 @@
-#ifdef _WINDOWS
+#ifdef _WIN32
 #ifndef _DEBUG
 #include "change_service.hpp"
 #endif
