@@ -9,13 +9,15 @@
 #include <wall_cache_library.hpp>
 #include <wall_error.hpp>
 
+template <typename... TS> struct overloaded : TS... {
+  using TS::operator()...;
+};
 namespace wallchanger {
 
 class change_server : public net::server_interface<MessageType> {
 public:
   explicit change_server(uint16_t port)
-      : net::server_interface<MessageType>(port), m_cache(true),
-        m_state(get_logger_name()) {
+      : net::server_interface<MessageType>(port), m_state(get_logger_name()) {
     m_start_time = std::chrono::system_clock::now();
   }
 
@@ -54,9 +56,6 @@ private:
   std::chrono::time_point<std::chrono::system_clock> m_start_time;
 
   wallchanger::state m_state;
-
-  wallchanger::cache_lib m_cache;
-  path_table m_path_buf;
 
   std::vector<nlohmann::json> m_previous;
   std::string m_active;
@@ -150,26 +149,27 @@ private:
     } break;
 
     case MessageType::List_Collections: {
+
+      auto state_res = m_state.list_collection(server_cmd, client->get_id());
       nlohmann::json obj;
-      if (!server_cmd["col_only"].get<bool>()) {
-        if (auto dat =
-                m_cache.get_cache(server_cmd["col"].get<std::string_view>())) {
-          obj["list"] = dat.value().get();
-          obj["list-only"] = false;
-          client->send_message(
-              message_helper::json_to_msg(MessageType::List_Collections, obj));
-          LOG_INFO(get_logger_name(),
-                   "client:[{}] requested to list collections\n",
-                   client->get_id());
-        }
-      } else {
-        obj["list"] = m_cache.cache_list();
+
+      auto mono_func = [&]([[maybe_unused]] std::monostate mono) {};
+
+      auto cache_func = [&](cache_lib::cache_lib_cref lib_ref) {
+        obj["list"] = lib_ref.get();
+        obj["list-only"] = false;
+      };
+
+      auto list_func = [&](const std::vector<std::string> &list) {
+        obj["list"] = list;
         obj["list-only"] = true;
+      };
+
+      std::visit(overloaded{mono_func, cache_func, list_func}, state_res);
+
+      if (!obj.is_null()) {
         client->send_message(
             message_helper::json_to_msg(MessageType::List_Collections, obj));
-        LOG_INFO(get_logger_name(),
-                 "client:[{}] requested to list collections\n",
-                 client->get_id());
       }
     } break;
 

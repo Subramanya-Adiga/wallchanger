@@ -149,6 +149,19 @@ bool state::add_to_collection(const nlohmann::json &server_cmd) noexcept {
   return false;
 }
 
+std::variant<std::monostate, cache_lib::cache_lib_cref,
+             std::vector<std::string>>
+state::list_collection(const nlohmann::json &server_cmd, uint32_t id) noexcept {
+  if (!server_cmd["col_only"].get<bool>()) {
+    LOG_INFO(m_logger, "client:[{}] requested to list collections\n", id);
+    return m_cache.get_current().value();
+  } else {
+    LOG_INFO(m_logger, "client:[{}] requested to list collections\n", id);
+    return m_cache.cache_list();
+  }
+  return {};
+}
+
 bool state::move_collectoion(const nlohmann::json &server_cmd,
                              uint32_t id) noexcept {
 

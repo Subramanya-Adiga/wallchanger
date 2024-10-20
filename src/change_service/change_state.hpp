@@ -25,6 +25,10 @@ public:
   [[nodiscard]] bool
   add_to_collection(const nlohmann::json &server_cmd) noexcept;
 
+  [[nodiscard]] std::variant<std::monostate, cache_lib::cache_lib_cref,
+                             std::vector<std::string>>
+  list_collection(const nlohmann::json &server_cmd, uint32_t id) noexcept;
+
   [[nodiscard]] bool move_collectoion(const nlohmann::json &server_cmd,
                                       uint32_t id) noexcept;
   [[nodiscard]] bool merge_collection(const nlohmann::json &server_cmd,
