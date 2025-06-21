@@ -1,15 +1,17 @@
 #include "windows_helper.hpp"
 #include <bit>
+#include <cstddef>
 
 std::wstring win32::to_utf16(const std::string &data) {
   if (data.empty()) {
     return {};
   }
   int size_needed = MultiByteToWideChar(
-      CP_UTF8, 0, &data[0], static_cast<int>(data.size()), nullptr, 0);
+      CP_UTF8, 0, data.data(), static_cast<int>(data.size()), nullptr, 0);
   std::wstring to_str(static_cast<std::size_t>(size_needed), 0);
-  if (MultiByteToWideChar(CP_UTF8, 0, &data[0], static_cast<int>(data.size()),
-                          &to_str[0], size_needed) == 0) {
+  if (MultiByteToWideChar(CP_UTF8, 0, data.data(),
+                          static_cast<int>(data.size()), to_str.data(),
+                          size_needed) == 0) {
     win32::error_handler_win32::message_display("MultiByteToWideChar");
   }
   return to_str;
@@ -19,12 +21,13 @@ std::string win32::to_utf8(const std::wstring &data) {
   if (data.empty()) {
     return {};
   }
-  int size_needed =
-      WideCharToMultiByte(CP_UTF8, 0, &data[0], static_cast<int>(data.size()),
-                          nullptr, 0, nullptr, nullptr);
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, data.data(),
+                                        static_cast<int>(data.size()), nullptr,
+                                        0, nullptr, nullptr);
   std::string to_str(static_cast<std::size_t>(size_needed), 0);
-  if (WideCharToMultiByte(CP_UTF8, 0, &data[0], static_cast<int>(data.size()),
-                          &to_str[0], size_needed, nullptr, nullptr) == 0) {
+  if (WideCharToMultiByte(CP_UTF8, 0, data.data(),
+                          static_cast<int>(data.size()), to_str.data(),
+                          size_needed, nullptr, nullptr) == 0) {
     win32::error_handler_win32::message_display("WideCharToMultiByte");
   }
   return to_str;
@@ -34,22 +37,24 @@ std::string win32::error_handler_win32::fmt_msg(std::string_view func_name,
                                                 HRESULT status) {
   LPWSTR *m_msg_buf = nullptr;
 
-  unsigned long id;
+  unsigned long id = 0;
   if (status != S_OK) {
-    id = status;
+    id = static_cast<unsigned long>(status);
   } else {
     id = GetLastError();
   }
 
+  uint32_t buf_size = 1024 * 64;
+
   if (m_msg_buf == nullptr) {
-    m_msg_buf = static_cast<LPWSTR *>(LocalAlloc(LHND, ONE_KIB * KIB_64));
+    m_msg_buf = static_cast<LPWSTR *>(LocalAlloc(LHND, buf_size));
   }
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                  nullptr, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 *m_msg_buf, ONE_KIB * KIB_64, nullptr);
+                 *m_msg_buf, buf_size, nullptr);
   auto ret = fmt::format("{} failed with error {}: {}", func_name, id,
                          to_utf8(*m_msg_buf));
-  LocalFree(m_msg_buf);
+  LocalFree(std::bit_cast<void *>(m_msg_buf));
   return ret;
 }
 

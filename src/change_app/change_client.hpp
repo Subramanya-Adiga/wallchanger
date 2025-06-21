@@ -1,4 +1,5 @@
 #pragma once
+#include "net/net_common.hpp"
 #include "message_type.hpp"
 // #include "platform/platform_win32.h" Used To Get Information About Wallpaper
 // Image

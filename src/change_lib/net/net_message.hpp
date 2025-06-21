@@ -1,5 +1,6 @@
 #pragma once
-#include "net_common.hpp"
+#include "crc32.hpp"
+
 namespace wallchanger::net {
 
 template <typename T> struct message_header {

@@ -9,6 +9,7 @@ target_sources(
          TYPE
          HEADERS
          FILES
+         crc32.hpp
          wall_error.hpp
          message_type.hpp
          path_table.hpp
