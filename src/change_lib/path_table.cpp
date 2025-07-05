@@ -49,11 +49,7 @@ bool path_table::exists(uint32_t id) const noexcept {
 void path_table::store() const noexcept {
   if (m_modified) {
     nlohmann::json obj;
-    auto obj_array = nlohmann::json::array();
-    for (auto &&elem : m_store) {
-      obj_array.push_back(elem);
-    }
-    obj["entries"] = obj_array;
+    obj["entries"] = m_store;
     std::ofstream stream(data_directory() + "/data/path_table.json");
     stream << std::setw(4) << obj << "\n";
   }
