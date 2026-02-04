@@ -3,12 +3,13 @@ add_library(change_lib STATIC)
 target_sources(
   change_lib
   PRIVATE wall_cache_library.cpp wall_background.cpp path_table.cpp
-          wall_error.cpp json_helper.hpp
+          wall_error.cpp wall_manager.cpp json_helper.hpp
   PUBLIC FILE_SET
          headers
          TYPE
          HEADERS
          FILES
+         wall_manager.hpp
          crc32.hpp
          wall_error.hpp
          message_type.hpp

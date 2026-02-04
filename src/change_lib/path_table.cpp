@@ -11,10 +11,9 @@ path_table::path_table() {
       nlohmann::json obj;
       stream >> obj;
       if (!obj.is_null()) {
-        for (auto &&entries : obj["entries"]) {
-          m_store.emplace_back(
-              entries.get<std::pair<uint32_t, std::filesystem::path>>());
-        }
+        m_store =
+            obj["entries"]
+                .get<std::vector<std::pair<uint32_t, std::filesystem::path>>>();
       }
     }
   }
