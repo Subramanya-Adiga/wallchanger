@@ -1,7 +1,7 @@
 #include "wall_background.hpp"
 
 #ifdef _WIN32
-#include "platform/platform_win32.hpp"
+#include "platform/win32/bg_handler.hpp"
 #elif __linux__
 #include "platform/linux/bg_handler.hpp"
 #endif

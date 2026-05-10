@@ -25,30 +25,30 @@ template <typename T> static T format_data(const Gdiplus::PropertyItem &item) {
 }
 
 template <>
-struct fmt::formatter<Gdiplus::PropertyItem> : fmt::formatter<string_view> {
+struct std::formatter<Gdiplus::PropertyItem> : std::formatter<string_view> {
   template <typename FormatContext>
-  auto format(Gdiplus::PropertyItem g, FormatContext &ctx) {
+  auto format(Gdiplus::PropertyItem g, FormatContext &ctx) const {
     std::string out;
     switch (g.id) {
     case PropertyTagArtist:
-      out += fmt::format("Artist:{}\n", format_asci(g));
+      out += std::format("Artist:{}\n", format_asci(g));
       break;
     case PropertyTagDateTime:
-      out += fmt ::format("DateTime:{}\n", format_asci(g));
+      out += std::format("DateTime:{}\n", format_asci(g));
       break;
     case PropertyTagSoftwareUsed:
-      out += fmt ::format("SoftwareUsed:{}\n", format_asci(g));
+      out += std::format("SoftwareUsed:{}\n", format_asci(g));
       break;
     case PropertyTagEquipMake:
-      out += fmt ::format("EquipMaker:{}\n", format_asci(g));
+      out += std::format("EquipMaker:{}\n", format_asci(g));
       break;
     case PropertyTagEquipModel:
-      out += fmt ::format("EquipModel:{}\n", format_asci(g));
+      out += std::format("EquipModel:{}\n", format_asci(g));
       break;
     default:
       break;
     }
-    return formatter<string_view>::format(out, ctx);
+    return std::formatter<string_view>::format(out, ctx);
   }
 };
 

@@ -1,4 +1,4 @@
-#include "windows_helper.hpp"
+#include "helper.hpp"
 #include <bit>
 #include <cstddef>
 
@@ -52,7 +52,7 @@ std::string win32::error_handler_win32::fmt_msg(std::string_view func_name,
   FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                  nullptr, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                  *m_msg_buf, buf_size, nullptr);
-  auto ret = fmt::format("{} failed with error {}: {}", func_name, id,
+  auto ret = std::format("{} failed with error {}: {}", func_name, id,
                          to_utf8(*m_msg_buf));
   LocalFree(std::bit_cast<void *>(m_msg_buf));
   return ret;

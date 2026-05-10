@@ -1,5 +1,5 @@
-#include "platform_win32.hpp"
-#include "windows_helper.hpp"
+#include "bg_handler.hpp"
+#include "helper.hpp"
 
 wallchanger::platform::win32::get_image_information::get_image_information(
     const std::string &image) {
@@ -44,7 +44,7 @@ wallchanger::platform::win32::get_image_information::retrive_image_properties()
   items.resize(propcount);
   std::string ret;
   for (auto &&item : items) {
-    ret += fmt::format("{}", item);
+    ret += std::format("{}", item);
   }
   return ret;
 }

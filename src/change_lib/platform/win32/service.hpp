@@ -1,4 +1,5 @@
 #pragma once
+#include "defines.hpp"
 
 namespace wallchanger::platform::win32 {
 #define SVC_ERROR ((DWORD)0xC0020001L)
