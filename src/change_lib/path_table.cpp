@@ -1,10 +1,6 @@
 #include "path_table.hpp"
-<<<<<<< HEAD
 #include "crc32.hpp"
-=======
-#include "net/net_common.hpp"
 #include <filesystem>
->>>>>>> list
 #include <fstream>
 
 namespace wallchanger {
@@ -16,17 +12,9 @@ path_table::path_table() {
       nlohmann::json obj;
       stream >> obj;
       if (!obj.is_null()) {
-<<<<<<< HEAD
         m_store =
             obj["entries"]
                 .get<std::vector<std::pair<uint32_t, std::filesystem::path>>>();
-=======
-          m_store = obj["entries"].get<std::vector<std::pair<uint32_t,std::filesystem::path>>>();
-        // for (auto &&entries : obj["entries"]) {
-        //   m_store.emplace_back(
-        //       entries.get<std::pair<uint32_t, std::filesystem::path>>());
-        // }
->>>>>>> list
       }
     }
   }
