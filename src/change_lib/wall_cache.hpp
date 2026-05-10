@@ -133,8 +133,8 @@ private:
 } // namespace wallchanger
 
 template <>
-struct fmt::formatter<wallchanger::cache_state_e>
-    : fmt::formatter<std::string_view> {
+struct std::formatter<wallchanger::cache_state_e>
+    : std::formatter<std::string_view> {
   template <typename FormatContext>
   auto fomrmat(wallchanger::cache_state_e obj, FormatContext &ctx) const {
     std::string_view out = "NULL";
@@ -152,19 +152,19 @@ struct fmt::formatter<wallchanger::cache_state_e>
       out = "Favorate";
       break;
     }
-    return formatter<std::string_view>::format(out, ctx);
+    return std::formatter<std::string_view>::format(out, ctx);
   }
 };
 
 template <>
-struct fmt::formatter<wallchanger::cache_item<std::string>>
-    : fmt::formatter<string_view> {
+struct std::formatter<wallchanger::cache_item<std::string>>
+    : std::formatter<string_view> {
   template <typename FormatContext>
   auto format(const wallchanger::cache_item<std::string> &obj,
               FormatContext &ctx) const {
-    std::string out =
-        fmt::format("Value:{}\n,State:{}\n,LocID:{:X}\n", obj.cache_value,
-                    fmt::underlying(obj.cache_state), obj.loc);
-    return formatter<string_view>::format(out, ctx);
+    auto out =
+        std::format("Value:{}\n,State:{}\n,LocID:{:X}\n", obj.cache_value,
+                    obj.cache_state, obj.loc);
+    return std::formatter<string_view>::format(out, ctx);
   }
 };

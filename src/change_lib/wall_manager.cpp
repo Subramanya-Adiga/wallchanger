@@ -1,6 +1,8 @@
 #include "wall_manager.hpp"
 #include <fstream>
 #include <nlohmann/json_fwd.hpp>
+#include "helpers.hpp"
+#include "../log.hpp"
 
 namespace wallchanger {
 manager::manager(std::string_view logger_name)
@@ -8,7 +10,7 @@ manager::manager(std::string_view logger_name)
 
 void manager::store() {
   if (!m_previous.empty()) {
-    std::ofstream hist(data_directory() + "/data/history.json", std::ios::out);
+    std::ofstream hist(data_directory() + "/history.json", std::ios::out);
     nlohmann::json obj;
     obj["histoy"] = m_previous;
     hist << std::setw(4) << obj << "\n";

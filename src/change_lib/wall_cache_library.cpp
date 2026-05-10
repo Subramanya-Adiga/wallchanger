@@ -3,6 +3,7 @@
 #include "wall_error.hpp"
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include "helpers.hpp"
 
 namespace wallchanger {
 cache_lib::cache_lib(bool load) {
@@ -29,13 +30,13 @@ cache_lib::get_current() const noexcept {
   return m_current.second;
 }
 
-outcome::result<void> cache_lib::insert(std::string name,
-                                        cache_lib_type value) noexcept {
+std::expected<void, std::error_code>
+cache_lib::insert(std::string name, cache_lib_type value) noexcept {
   if (!exists(name)) {
     m_cache_vec.emplace_back(std::move(name),
                              std::forward<cache_lib_type>(value));
   }
-  return wall_errc::cache_does_not_exists;
+  return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
 std::optional<cache_lib::cache_lib_cref>
@@ -56,7 +57,7 @@ cache_lib::get_cache(std::string_view name) noexcept {
   return std::nullopt;
 }
 
-outcome::result<void>
+std::expected<void, std::error_code>
 cache_lib::change_active(std::string_view new_active) noexcept {
   if (exists(new_active)) {
     auto rng_it =
@@ -64,10 +65,10 @@ cache_lib::change_active(std::string_view new_active) noexcept {
     m_active_name = rng_it->first;
     m_current = *rng_it;
   }
-  return wall_errc::cache_does_not_exists;
+  return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
-outcome::result<void>
+std::expected<void, std::error_code>
 cache_lib::rename_store(std::string_view from_name,
                         std::string_view to_name) noexcept {
   if (from_name != to_name) {
@@ -79,18 +80,19 @@ cache_lib::rename_store(std::string_view from_name,
         m_active_name = to_name;
       }
     }
-    return wall_errc::cache_does_not_exists;
+    return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
   }
-  return wall_errc::cache_frm_cache_to_same;
+  return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
-outcome::result<void> cache_lib::remove(std::string_view name) noexcept {
+std::expected<void, std::error_code>
+cache_lib::remove(std::string_view name) noexcept {
   if (exists(name)) {
     auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
     rng_it->second.clear();
     m_clear_empty();
   }
-  return wall_errc::cache_does_not_exists;
+  return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
 bool cache_lib::is_empty() const noexcept { return m_cache_vec.empty(); }
@@ -124,8 +126,8 @@ std::vector<std::string> cache_lib::cache_list() const noexcept {
   return ret;
 }
 
-outcome::result<void> cache_lib::merge_cache(std::string_view col1,
-                                             std::string_view col2) noexcept {
+std::expected<void, std::error_code>
+cache_lib::merge_cache(std::string_view col1, std::string_view col2) noexcept {
   if (col1 != col2) {
     if (exists(col1) && exists(col2)) {
       auto col1_it = std::ranges::find(m_cache_vec, col1, &cache_store::first);
@@ -142,12 +144,12 @@ outcome::result<void> cache_lib::merge_cache(std::string_view col1,
 
       m_cache_vec.emplace_back(new_store);
     }
-    return wall_errc::cache_does_not_exists;
+    return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
   }
-  return wall_errc::cache_frm_cache_to_same;
+  return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
-outcome::result<void>
+std::expected<void, std::error_code>
 cache_lib::move_cache_item(std::string_view source, std::string_view dest,
                            std::string_view item_name) noexcept {
   if ((source != dest) && (dest != item_name)) {
@@ -163,11 +165,11 @@ cache_lib::move_cache_item(std::string_view source, std::string_view dest,
         dst->second.insert_elem(std::move(*itm_itr));
         src->second.erase(itm_itr);
       }
-      return wall_errc::cache_elem_not_exists;
+      return std::unexpected{make_error_code(wall_errc::cache_elem_not_exists)};
     }
-    return wall_errc::cache_does_not_exists;
+    return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
   }
-  return wall_errc::cache_frm_cache_to_same;
+  return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
 void cache_lib::serialize() const {
@@ -177,7 +179,7 @@ void cache_lib::serialize() const {
     obj["active"] = m_current.first;
     obj["cache_libraries"] = m_cache_vec;
 
-    std::ofstream obj_file(data_directory() + "/data/libraries.json",
+    std::ofstream obj_file(data_directory() + "/libraries.json",
                            std::ios::out);
     if (obj_file.good()) {
       obj_file << std::setw(4) << obj << "\n";
@@ -186,7 +188,7 @@ void cache_lib::serialize() const {
 }
 
 bool cache_lib::deserialize() {
-  std::ifstream obj_file(data_directory() + "/data/libraries.json",
+  std::ifstream obj_file(data_directory() + "/libraries.json",
                          std::ios::in);
   if (obj_file.good()) {
     nlohmann::json obj;

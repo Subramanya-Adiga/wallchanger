@@ -1,4 +1,5 @@
 project(testing CXX C)
+include(Catch)
 
 add_executable(test_cache testing_cache.cpp)
 target_precompile_headers(test_cache INTERFACE <catch2/catch_all.hpp>)

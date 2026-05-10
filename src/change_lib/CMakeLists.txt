@@ -10,6 +10,8 @@ target_sources(
          HEADERS
          FILES
          defines.hpp
+         helpers.cpp
+         helpers.hpp
          wall_manager.hpp
          crc32.hpp
          wall_error.hpp

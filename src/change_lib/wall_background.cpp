@@ -3,7 +3,7 @@
 #ifdef _WIN32
 #include "platform/platform_win32.hpp"
 #elif __linux__
-#include "platform/platform_linux.hpp"
+#include "platform/linux/bg_handler.hpp"
 #endif
 
 std::string wallchanger::background_handler::get_error() const {

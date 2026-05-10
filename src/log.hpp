@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <range/v3/all.hpp>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>

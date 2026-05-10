@@ -1,4 +1,5 @@
-#include "platform_linux.hpp"
+#include "bg_handler.hpp"
+#include "../../helpers.hpp"
 
 namespace wallchanger::platform {
 
