@@ -2,15 +2,20 @@ add_library(change_lib STATIC)
 
 target_sources(
   change_lib
-  PRIVATE wall_cache_library.cpp wall_background.cpp path_table.cpp
-          wall_error.cpp wall_manager.cpp json_helper.hpp
+  PRIVATE wall_cache_library.cpp
+          wall_background.cpp
+          path_table.cpp
+          wall_error.cpp
+          wall_manager.cpp
+          json_helper.hpp
+          helpers.cpp
+          known-folders.cpp
   PUBLIC FILE_SET
          headers
          TYPE
          HEADERS
          FILES
          defines.hpp
-         helpers.cpp
          helpers.hpp
          wall_manager.hpp
          crc32.hpp
@@ -20,7 +25,6 @@ target_sources(
          wall_cache_library.hpp
          wall_cache.hpp
          wall_background.hpp
-         known-folders.cpp
          known-folders.hpp
          net/net_common.hpp
          net/connect_queue.hpp
