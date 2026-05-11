@@ -90,7 +90,7 @@ cache_lib::remove(std::string_view name) noexcept {
   if (exists(name)) {
     auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
     rng_it->second.clear();
-    m_clear_empty();
+    m_cache_vec.erase(rng_it);
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }

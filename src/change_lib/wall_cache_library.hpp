@@ -61,12 +61,6 @@ public:
 
 private:
   std::string m_active_name;
-  void m_clear_empty() noexcept {
-    if (!is_empty()) {
-      auto res = std::ranges::remove_if(
-          m_cache_vec, [](auto &&data) { return data.second.empty(); });
-    }
-  }
 };
 
 } // namespace wallchanger
