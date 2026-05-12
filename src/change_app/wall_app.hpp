@@ -1,6 +1,6 @@
 #pragma once
-#include "change_client.hpp"
 #include <boost/program_options.hpp>
+#include <defines.hpp>
 #include <span>
 
 namespace wallchanger {
@@ -13,8 +13,8 @@ class application {
   using commandgroup = std::pair<std::string, po::options_description>;
   using commandline = std::vector<std::tuple<std::string_view, std::string_view,
                                              const po::value_semantic *>>;
-  enum subcommand_e { GLOBAL, COLLECTION, CONFIG, HISTORY };
-  enum command_loc { cmd, desc, value };
+  enum subcommand_e : u8 { GLOBAL, COLLECTION, CONFIG, HISTORY };
+  enum command_loc : u8 { cmd, desc, value };
 
   commandline m_global_options = {
       {"command", "command to execute", po::value<std::string>()},
@@ -25,8 +25,6 @@ class application {
       {"get-current", "print informatin about current wallpaper", nullptr},
       {"mark-favorate", "mark current wallpaper as Favorate", nullptr},
       {"version", "Program version", nullptr},
-      {"ping", "ping server", nullptr},
-      {"get-status", "get server status", nullptr},
       {"help,h", "Print Help Message", nullptr}};
 
   commandline m_collection_options{
@@ -83,13 +81,12 @@ private:
       "global", "collection", "configuration", "history"};
 
   std::vector<std::pair<std::string_view, commandline>> m_cmds = {
-      {m_group_name[GLOBAL], m_global_options},
-      {m_group_name[COLLECTION], m_collection_options},
-      {m_group_name[CONFIG], m_config_options},
-      {m_group_name[HISTORY], m_history_options}};
+      {m_group_name[subcommand_e::GLOBAL], m_global_options},
+      {m_group_name[subcommand_e::COLLECTION], m_collection_options},
+      {m_group_name[subcommand_e::CONFIG], m_config_options},
+      {m_group_name[subcommand_e::HISTORY], m_history_options}};
 
   std::vector<commandgroup> m_group_vec;
-  wallchanger::change_client m_client;
 
   void m_process_commands(subcommand_e cmd);
   void m_collection_cmds();

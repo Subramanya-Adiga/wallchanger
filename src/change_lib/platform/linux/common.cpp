@@ -43,5 +43,5 @@ std::error_code make_error_code(const linux_error_code &e) {
 }
 
 std::error_code make_linux_error_code() {
-  return make_error_code(linux_error_code{errno});
+  return make_error_code(linux_error_code{static_cast<u32>(errno)});
 }

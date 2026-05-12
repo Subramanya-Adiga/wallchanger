@@ -64,13 +64,11 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(spdlog nlohmann_json sol2 lua)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(asio REQUIRED)
 
 target_link_libraries(
-  project_dependency
-  INTERFACE spdlog::spdlog_header_only sol2 lua::lua Boost::program_options
-            nlohmann_json::nlohmann_json asio::asio)
+  project_dependency INTERFACE spdlog::spdlog_header_only sol2 lua::lua
+                               nlohmann_json::nlohmann_json asio::asio)
 
 message(STATUS "Project will be installed to ${CMAKE_INSTALL_PREFIX}")
 include(GNUInstallDirs)
