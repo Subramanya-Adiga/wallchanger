@@ -8,7 +8,7 @@ wallchanger::application::application(std::span<char *> args) {
   po::positional_options_description pos;
   pos.add("command", 1).add("subargs", -1);
 
-  // Initialize All Commandgroups
+  // Initialize All CommandGroups
   std::ranges::for_each(m_group_name, [this](auto &data) {
     m_group_vec.emplace_back(data, po::options_description(data));
   });
@@ -17,14 +17,12 @@ wallchanger::application::application(std::span<char *> args) {
   for (auto &&[group_name, command_line] : m_cmds) {
     auto group =
         std::ranges::find(m_group_vec, group_name, &commandgroup::first);
+
     std::ranges::for_each(command_line, [group](auto &data) {
-      if (std::get<value>(data) != nullptr) {
-        group->second.add_options()(std::get<cmd>(data).data(),
-                                    std::get<value>(data),
-                                    std::get<desc>(data).data());
+      if (auto &&[cmd, desc, value] = data; value != nullptr) {
+        group->second.add_options()(cmd.c_str(), value, desc.c_str());
       } else {
-        group->second.add_options()(std::get<cmd>(data).data(),
-                                    std::get<desc>(data).data());
+        group->second.add_options()(cmd.c_str(), desc.c_str());
       }
     });
   }
@@ -105,7 +103,7 @@ void wallchanger::application::m_process_commands(subcommand_e sub_cmd) {
     std::ranges::for_each(
         m_group_vec[sub_cmd].second.options(), [](auto &&data) {
           std::println("{1:<20} {0:^15} {2:<20}", "", data->format_name(),
-                     data->description());
+                       data->description());
         });
   }
 }
