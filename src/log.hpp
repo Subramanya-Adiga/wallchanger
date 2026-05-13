@@ -14,20 +14,20 @@ class logger {
 public:
   void create_logger(std::string_view name) {
     auto sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    auto logger = std::make_shared<spdlog::logger>(name.data(), sink);
-    logger->set_level(spdlog::level::trace);
-    log_vec_.emplace_back(logger);
+    auto log = std::make_shared<spdlog::logger>(name.data(), sink);
+    log->set_level(spdlog::level::trace);
+    log_vec_.emplace_back(log);
   }
   void set_pattern(std::string_view name, std::string_view pattern) {
     auto rng_it = std::ranges::find_if(
-        log_vec_, [&](auto &logger) { return (logger->name() == name); });
+        log_vec_, [name](auto &log) { return (log->name() == name); });
     if (rng_it != std::ranges::end(log_vec_)) {
       rng_it->get()->set_pattern(pattern.data());
     }
   }
   std::shared_ptr<spdlog::logger> get_logger(std::string_view name) {
     auto rng_it = std::ranges::find_if(
-        log_vec_, [&](auto &logger) { return (logger->name() == name); });
+        log_vec_, [name](auto &log) { return (log->name() == name); });
     if (rng_it != std::ranges::end(log_vec_)) {
       return *rng_it;
     }
@@ -35,7 +35,7 @@ public:
   }
   void add_file_sink(std::string_view name, std::string_view file_name) {
     auto rng_it = std::ranges::find_if(
-        log_vec_, [&](auto &logger) { return (logger->name() == name); });
+        log_vec_, [name](auto &log) { return (log->name() == name); });
     if (rng_it != std::ranges::end(log_vec_)) {
       auto file_sink =
           std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name.data());

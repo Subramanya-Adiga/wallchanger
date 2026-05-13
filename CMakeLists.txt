@@ -42,6 +42,7 @@ target_precompile_headers(
   <variant>
   <functional>
   <random>
+  <wallchanger_info.hpp>
   <nlohmann/json.hpp>)
 
 FetchContent_Declare(
@@ -102,6 +103,11 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_service")
 # changer
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_app")
 
+configure_file(${CMAKE_SOURCE_DIR}/config_version.h.in
+               ${CMAKE_BINARY_DIR}/generated_files/wallchanger_info.hpp @ONLY)
+
+target_include_directories(project_dependency
+                           INTERFACE ${CMAKE_BINARY_DIR}/generated_files)
 add_custom_target(
   copy_compile_commands ALL
   COMMAND

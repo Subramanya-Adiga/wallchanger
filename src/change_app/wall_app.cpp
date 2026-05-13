@@ -55,7 +55,9 @@ int wallchanger::application::run() {
   }
 
   if (m_option_map.contains("version")) {
-    std::println(stdout, "program version: {}", m_version);
+    std::println(stdout, "program version: {}\nCompiler:{} {} {}",
+                 WALLCHANGER_VERSION, COMPILER_NAME, COMPILER_VERSION,
+                 COMPILER_ARCH);
   }
 
   if (m_option_map.contains("next")) {

@@ -5,7 +5,6 @@
 namespace wallchanger {
 
 class application {
-  static constexpr std::string_view m_version = "0.1 pre alpha";
 public:
   explicit application(std::span<char *> args);
   int run();
