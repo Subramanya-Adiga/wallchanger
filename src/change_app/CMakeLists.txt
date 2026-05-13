@@ -8,6 +8,14 @@ endif()
 
 target_sources(changer PRIVATE wall_app.cpp wall_app.hpp wall_cmds.hpp)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG "boost-1.91.0")
+
+set(BOOST_INCLUDE_LIBRARIES program_options)
+set(BOOST_ENABLE_CMAKE ON)
+
+FetchContent_MakeAvailable(Boost)
 
 target_link_libraries(changer PRIVATE change_lib Boost::program_options)

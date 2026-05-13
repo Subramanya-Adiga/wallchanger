@@ -25,12 +25,7 @@ target_sources(
          wall_cache_library.hpp
          wall_cache.hpp
          wall_background.hpp
-         known-folders.hpp
-         net/net_common.hpp
-         net/connect_queue.hpp
-         net/connection.hpp
-         net/client_interface.hpp
-         net/server_interface.hpp)
+         known-folders.hpp)
 
 if(WIN32)
   target_sources(
