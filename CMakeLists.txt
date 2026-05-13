@@ -16,6 +16,9 @@ target_compile_features(project_options INTERFACE cxx_std_23)
 if(MINGW OR MSVC)
   target_compile_definitions(project_options INTERFACE _CRT_SECURE_NO_WARNINGS
                                                        NOMINMAX UNICODE)
+  if(MINGW)
+    target_link_libraries(project_options INTERFACE stdc++exp)
+  endif()
 endif()
 
 set_project_warnings(project_options)
