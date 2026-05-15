@@ -6,7 +6,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL
   target_link_options(changer PRIVATE /LTCG)
 endif()
 
-target_sources(changer PRIVATE wall_app.cpp wall_app.hpp wall_cmds.hpp)
+target_sources(changer PRIVATE wall_app.cpp wall_app.hpp wall_cmds.hpp
+                               wall_manager.cpp wall_manager.hpp)
 
 FetchContent_Declare(
   Boost

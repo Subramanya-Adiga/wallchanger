@@ -6,7 +6,6 @@ target_sources(
           wall_background.cpp
           path_table.cpp
           wall_error.cpp
-          wall_manager.cpp
           json_helper.hpp
           helpers.cpp
           known-folders.cpp
@@ -17,7 +16,6 @@ target_sources(
          FILES
          defines.hpp
          helpers.hpp
-         wall_manager.hpp
          crc32.hpp
          wall_error.hpp
          message_type.hpp
