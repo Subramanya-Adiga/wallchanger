@@ -14,19 +14,26 @@ public:
 
   [[nodiscard]] bool change_active(std::string_view cmd) noexcept;
 
-  [[nodiscard]] bool rename_collection(const nlohmann::json &cmd) noexcept;
+  [[nodiscard]] bool rename_collection(std::string_view from,
+                                       std::string_view to) noexcept;
 
-  [[nodiscard]] bool create_collection(const nlohmann::json &cmd) noexcept;
-  [[nodiscard]] bool add_to_collection(const nlohmann::json &cmd) noexcept;
+  [[nodiscard]] bool create_collection(std::string name,
+                                       const std::filesystem::path &path,
+                                       bool recursive = false) noexcept;
+  [[nodiscard]] bool
+  add_to_collection(std::string_view collection_name,
+                    const std::filesystem::path &wall) noexcept;
 
-  [[nodiscard]] std::variant<std::monostate, cache_lib::cache_lib_cref,
-                             std::vector<std::string>>
-  list_collection(const nlohmann::json &cmd) noexcept;
+  [[nodiscard]] std::vector<std::string> list_collection() const noexcept;
 
-  [[nodiscard]] bool move_collectoion(const nlohmann::json &cmd) noexcept;
-  [[nodiscard]] bool merge_collection(const nlohmann::json &cmd) noexcept;
+  [[nodiscard]] bool merge_collection(std::string_view collection_1,
+                                      std::string_view collection_2) noexcept;
 
-  [[nodiscard]] bool remove_collection(const nlohmann::json &cmd) noexcept;
+  [[nodiscard]] bool remove_collection(std::string_view collection) noexcept;
+
+  [[nodiscard]] bool move_wallpaper(std::string_view origin_collection,
+                                    std::string_view dest_collection,
+                                    std::string_view wall_name) noexcept;
 
 private:
   std::string_view m_logger;

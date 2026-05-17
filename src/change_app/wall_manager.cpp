@@ -56,7 +56,7 @@ nlohmann::json Manager::next_wall() {
     }
   }
 
-  uint32_t path_loc = cache[idx].loc;
+  u32 path_loc = cache[idx].loc;
   nlohmann::json send;
   send["wallpaper"] = ret.cache_value;
   send["path"] = m_path_buf.get(path_loc).value().get();
@@ -84,24 +84,24 @@ bool Manager::change_active(std::string_view cmd) noexcept {
   return false;
 }
 
-bool Manager::rename_collection(const nlohmann::json &cmd) noexcept {
-  if (m_cache.rename_store(cmd["col_name"].get<std::string>(),
-                           cmd["col_name_new"].get<std::string>())) {
-    LOG_INFO(m_logger, "created renamed:[{}] to:[{}]\n",
-             cmd["col_name"].get<std::string>(),
-             cmd["col_name_new"].get<std::string>());
+bool Manager::rename_collection(std::string_view from,
+                                std::string_view to) noexcept {
+  if (m_cache.rename_store(from, to)) {
+    LOG_INFO(m_logger, "created renamed:[{}] to:[{}]\n", from, to);
     return true;
   }
 
   return false;
 }
 
-bool Manager::create_collection(const nlohmann::json &cmd) noexcept {
+bool Manager::create_collection(std::string name,
+                                const std::filesystem::path &path,
+                                bool recursive) noexcept {
   wallchanger::cache_lib::cache_lib_type cache;
 
-  if (!cmd["col_empty"].get<bool>()) {
-    auto col_path = cmd["col_path"].get<std::string>();
-    auto crc_loc = static_cast<uint32_t>(
+  if ((!path.empty()) && std::filesystem::exists(path)) {
+    auto col_path = path.string();
+    auto crc_loc = static_cast<u32>(
         wallchanger::helper::crc(col_path.begin(), col_path.end()));
 
     auto inserter = [&](const std::filesystem::directory_entry &path) {
@@ -110,7 +110,7 @@ bool Manager::create_collection(const nlohmann::json &cmd) noexcept {
       }
     };
 
-    if (!cmd["recursive"].get<bool>()) {
+    if (!recursive) {
       std::ranges::for_each(std::filesystem::directory_iterator(col_path),
                             inserter);
     } else {
@@ -119,89 +119,64 @@ bool Manager::create_collection(const nlohmann::json &cmd) noexcept {
     }
 
     m_path_buf.insert(col_path);
-    LOG_INFO(m_logger, "created collection:[{}] path:[{}]\n",
-             cmd["new_col_name"].get<std::string>(),
-             cmd["col_path"].get<std::string>());
+    LOG_INFO(m_logger, "created collection:[{}] path:[{}]\n", name, col_path);
   }
-  if (m_cache.insert(cmd["new_col_name"], cache)) {
-    LOG_INFO(m_logger, "created collection:[{}]\n",
-             cmd["new_col_name"].get<std::string>());
+  if (m_cache.insert(name, cache)) {
     return true;
   }
   return false;
 }
 
-bool Manager::add_to_collection(const nlohmann::json &cmd) noexcept {
-  auto col_name = cmd["col_name"].get<std::string>();
-  auto wall = cmd["wall"].get<std::filesystem::path>();
+bool Manager::add_to_collection(std::string_view collection_name,
+                                const std::filesystem::path &wall) noexcept {
 
   auto wall_path = wall.parent_path().string();
-  auto path_crc = static_cast<uint32_t>(
+  auto path_crc = static_cast<u32>(
       wallchanger::helper::crc(wall_path.begin(), wall_path.end()));
-  if (auto dat = m_cache.get_cache(col_name)) {
-    auto &cache = dat.value().get();
 
+  if (auto dat = m_cache.get_cache(collection_name)) {
+    auto &cache = dat.value().get();
     cache.insert(wall.filename().string(), path_crc);
     m_path_buf.insert(wall_path);
-    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n",
-             cmd["col_name"].get<std::string>(),
-             cmd["wall"].get<std::string>());
+    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n", collection_name,
+             wall_path);
     return true;
   }
   return false;
 }
 
-std::variant<std::monostate, cache_lib::cache_lib_cref,
-             std::vector<std::string>>
-Manager::list_collection(const nlohmann::json &cmd) noexcept {
-  if (!cmd["col_only"].get<bool>()) {
-    LOG_INFO(m_logger, "requested to list collections\n");
-    return m_cache.get_current().value();
-  } else {
-    LOG_INFO(m_logger, "requested to list collections\n");
-    return m_cache.cache_list();
-  }
-  return {};
+std::vector<std::string> Manager::list_collection() const noexcept {
+  return m_cache.cache_list();
 }
 
-bool Manager::move_collectoion(const nlohmann::json &cmd) noexcept {
-  auto col_frm = cmd["col_cur"].get<std::string_view>();
-  auto col_to = cmd["col_new"].get<std::string_view>();
-  auto wall = cmd["wall"].get<std::string_view>();
-
-  if (m_cache.move_cache_item(col_frm, col_to, wall)) {
-    LOG_INFO(m_logger, "requested to move wallpaper {} from {} to {}\n", wall,
-             col_frm, col_to);
+bool Manager::merge_collection(std::string_view collection_1,
+                               std::string_view collection_2) noexcept {
+  if (m_cache.merge_cache(collection_1, collection_2)) {
+    LOG_INFO(m_logger, "Merged Collections {} {}\n", collection_1,
+             collection_2);
     return true;
   }
   return false;
 }
 
-bool Manager::merge_collection(const nlohmann::json &cmd) noexcept {
-  auto col1 = cmd["col1"].get<std::string_view>();
-  auto col2 = cmd["col2"].get<std::string_view>();
-  if (m_cache.merge_cache(col1, col2)) {
-    LOG_INFO(m_logger, "requested to merge collections {} {}\n", col1, col2);
+bool Manager::remove_collection(std::string_view collection) noexcept {
+  if (m_cache.remove(collection)) {
+    LOG_INFO(m_logger, "removed collection:[{}]\n", collection);
     return true;
   }
   return false;
 }
 
-bool Manager::remove_collection(const nlohmann::json &cmd) noexcept {
-  if (cmd["wall_only"].get<bool>()) {
-    if (auto dat = m_cache.get_cache(cmd["col"].get<std::string_view>())) {
+bool Manager::move_wallpaper(std::string_view origin_collection,
+                             std::string_view dest_collection,
+                             std::string_view wall_name) noexcept {
 
-      LOG_INFO(m_logger, "removed wallpaper:[{}] from collection:[{}]\n",
-               cmd["wall"].get<std::string_view>(),
-               cmd["col"].get<std::string_view>());
-      return true;
-    }
-  } else {
-    if (m_cache.remove(cmd["col"].get<std::string_view>())) {
-      LOG_INFO(m_logger, "removed collection:[{}]\n",
-               cmd["col"].get<std::string_view>());
-      return true;
-    }
+  if (m_cache.move_cache_item(origin_collection, dest_collection, wall_name)) {
+    LOG_INFO(m_logger,
+             "Moved Wallpaper {} From Origin Collection:{} To Destination "
+             "Collection:{}\n",
+             wall_name, origin_collection, dest_collection);
+    return true;
   }
   return false;
 }
