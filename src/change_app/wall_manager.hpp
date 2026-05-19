@@ -31,6 +31,9 @@ public:
 
   [[nodiscard]] bool remove_collection(std::string_view collection) noexcept;
 
+  [[nodiscard]] std::optional<cache_lib::cache_lib_cref>
+  get_cache(std::string_view name) const noexcept;
+
   [[nodiscard]] bool move_wallpaper(std::string_view origin_collection,
                                     std::string_view dest_collection,
                                     std::string_view wall_name) noexcept;

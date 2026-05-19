@@ -20,17 +20,19 @@ void Manager::store() {
 }
 
 void Manager::mark_favorate() {
-  auto cur = m_previous.back();
-  auto cur_cache = m_cache.get_current()->get();
+  if (!m_previous.empty()) {
+    auto cur = m_previous.back();
+    auto cur_cache = m_cache.get_current()->get();
 
-  auto fnd_it =
-      std::ranges::find(cur_cache, cur["wallpaper"].get<std::string_view>(),
-                        &cache_lib::cache_lib_type::value_type::cache_value);
-  fnd_it->cache_state = cache_state_e::favorate;
+    auto fnd_it =
+        std::ranges::find(cur_cache, cur["wallpaper"].get<std::string_view>(),
+                          &cache_lib::cache_lib_type::value_type::cache_value);
+    fnd_it->cache_state = cache_state_e::favorate;
 
-  LOG_INFO(m_logger, "Marked [{}] Wallpaper From [{}] As Favorate",
-           cur["wallpaper"].get<std::string_view>(),
-           m_cache.active_cache_name());
+    LOG_INFO(m_logger, "Marked [{}] Wallpaper From [{}] As Favorate",
+             cur["wallpaper"].get<std::string_view>(),
+             m_cache.active_cache_name());
+  }
 }
 
 nlohmann::json Manager::next_wall() {
@@ -76,21 +78,30 @@ nlohmann::json Manager::previous_wall() {
 }
 
 bool Manager::change_active(std::string_view cmd) noexcept {
-  if (m_cache.change_active(cmd)) {
+  if (auto res = m_cache.change_active(cmd); res.has_value()) {
     LOG_INFO(m_logger, "Changed active collection to:{} \n",
              m_cache.active_cache_name());
     return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured While Chainging Active "
+            "Collection.\nErrorCode:{}\n,ErrorMessage:{}\n",
+            res.error().value(), res.error().message());
   }
   return false;
 }
 
 bool Manager::rename_collection(std::string_view from,
                                 std::string_view to) noexcept {
-  if (m_cache.rename_store(from, to)) {
+  if (auto res = m_cache.rename_store(from, to); res.has_value()) {
     LOG_INFO(m_logger, "created renamed:[{}] to:[{}]\n", from, to);
     return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured While Renaming Collection."
+            "From:{} To:{}\nErrorCode:{}\nErrorMessage:{}\n",
+            from, to, res.error().value(), res.error().message());
   }
-
   return false;
 }
 
@@ -104,9 +115,9 @@ bool Manager::create_collection(std::string name,
     auto crc_loc = static_cast<u32>(
         wallchanger::helper::crc(col_path.begin(), col_path.end()));
 
-    auto inserter = [&](const std::filesystem::directory_entry &path) {
-      if (!path.is_directory()) {
-        cache.insert(path.path().filename().string(), crc_loc);
+    auto inserter = [&](const std::filesystem::directory_entry &path_itr) {
+      if (!path_itr.is_directory()) {
+        cache.insert(path_itr.path().filename().string(), crc_loc);
       }
     };
 
@@ -121,8 +132,13 @@ bool Manager::create_collection(std::string name,
     m_path_buf.insert(col_path);
     LOG_INFO(m_logger, "created collection:[{}] path:[{}]\n", name, col_path);
   }
-  if (m_cache.insert(name, cache)) {
+  if (auto res = m_cache.insert(name, cache); res.has_value()) {
     return true;
+  } else {
+    LOG_ERR(
+        m_logger,
+        "Error While Creataing Collection.\nErrorCode:{}\nErrorMessage:{}\n",
+        res.error().value(), res.error().message());
   }
   return false;
 }
@@ -138,8 +154,8 @@ bool Manager::add_to_collection(std::string_view collection_name,
     auto &cache = dat.value().get();
     cache.insert(wall.filename().string(), path_crc);
     m_path_buf.insert(wall_path);
-    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n", collection_name,
-             wall_path);
+    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n", wall_path,
+             collection_name);
     return true;
   }
   return false;
@@ -149,20 +165,37 @@ std::vector<std::string> Manager::list_collection() const noexcept {
   return m_cache.cache_list();
 }
 
+std::optional<cache_lib::cache_lib_cref>
+Manager::get_cache(std::string_view name) const noexcept {
+  return m_cache.get_cache(name);
+}
+
 bool Manager::merge_collection(std::string_view collection_1,
                                std::string_view collection_2) noexcept {
-  if (m_cache.merge_cache(collection_1, collection_2)) {
+  if (auto res = m_cache.merge_cache(collection_1, collection_2);
+      res.has_value()) {
     LOG_INFO(m_logger, "Merged Collections {} {}\n", collection_1,
              collection_2);
     return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured Merging Collections. {} With "
+            "{}.\nErroCode:{}\nErrorMessage:{}\n",
+            collection_1, collection_2, res.error().value(),
+            res.error().message());
   }
   return false;
 }
 
 bool Manager::remove_collection(std::string_view collection) noexcept {
-  if (m_cache.remove(collection)) {
+  if (auto res = m_cache.remove(collection); res.has_value()) {
     LOG_INFO(m_logger, "removed collection:[{}]\n", collection);
     return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured Removing Collection "
+            "{}.\nErrorCode:{}\nErrorMessage:{}\n",
+            collection, res.error().value(), res.error().message());
   }
   return false;
 }
@@ -171,12 +204,20 @@ bool Manager::move_wallpaper(std::string_view origin_collection,
                              std::string_view dest_collection,
                              std::string_view wall_name) noexcept {
 
-  if (m_cache.move_cache_item(origin_collection, dest_collection, wall_name)) {
+  if (auto res = m_cache.move_cache_item(origin_collection, dest_collection,
+                                         wall_name);
+      res.has_value()) {
     LOG_INFO(m_logger,
              "Moved Wallpaper {} From Origin Collection:{} To Destination "
              "Collection:{}\n",
              wall_name, origin_collection, dest_collection);
     return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured Moving Wallpaper:{} From Collection:{} To "
+            "Collection:{}.\nErrorCode:{}\nErrorMessage:{}\n",
+            wall_name, origin_collection, dest_collection, res.error().value(),
+            res.error().message());
   }
   return false;
 }
