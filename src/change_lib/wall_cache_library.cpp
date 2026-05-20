@@ -1,9 +1,11 @@
 #include "wall_cache_library.hpp"
+#include "helpers.hpp"
 #include "json_helper.hpp"
 #include "wall_error.hpp"
 #include <fstream>
+#include <iterator>
 #include <nlohmann/json.hpp>
-#include "helpers.hpp"
+#include <string_view>
 
 namespace wallchanger {
 cache_lib::cache_lib(bool load) {
@@ -12,10 +14,10 @@ cache_lib::cache_lib(bool load) {
       auto rng_it =
           std::ranges::find(m_cache_vec, m_active_name, &cache_store::first);
       if (rng_it != std::ranges::end(m_cache_vec)) {
-        m_current = *rng_it;
+        auto pos = std::distance(m_cache_vec.begin(), rng_it);
+        m_current = static_cast<u32>(pos);
       } else {
-        m_current = m_cache_vec.front();
-        m_active_name = m_current.first;
+        m_current = 0;
       }
     }
   }
@@ -25,9 +27,14 @@ std::string_view cache_lib::active_cache_name() const noexcept {
   return m_active_name;
 }
 
-std::optional<cache_lib::cache_lib_cref>
-cache_lib::get_current() const noexcept {
-  return m_current.second;
+cache_lib::slice cache_lib::get_current() noexcept {
+  return std::span{m_cache_vec[m_current].second.begin(),
+                   m_cache_vec[m_current].second.size()};
+}
+
+cache_lib::const_slice cache_lib::get_current() const noexcept {
+  return std::span{m_cache_vec[m_current].second.cbegin(),
+                   m_cache_vec[m_current].second.size()};
 }
 
 std::expected<void, std::error_code>
@@ -39,22 +46,22 @@ cache_lib::insert(std::string name, cache_lib_type value) noexcept {
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
-std::optional<cache_lib::cache_lib_cref>
+std::expected<cache_lib::const_slice, std::error_code>
 cache_lib::get_cache(std::string_view name) const noexcept {
   if (exists(name)) {
     auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
-    return rng_it->second;
+    return std::span{rng_it->second.data(), rng_it->second.size()};
   }
-  return {};
+  return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
-std::optional<cache_lib::cache_lib_ref>
+std::expected<cache_lib::slice, std::error_code>
 cache_lib::get_cache(std::string_view name) noexcept {
   if (exists(name)) {
     auto itr = std::ranges::find(m_cache_vec, name, &cache_store::first);
-    return itr->second;
+    return std::span{itr->second.data(), itr->second.size()};
   }
-  return std::nullopt;
+  return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
 std::expected<void, std::error_code>
@@ -62,8 +69,9 @@ cache_lib::change_active(std::string_view new_active) noexcept {
   if (exists(new_active)) {
     auto rng_it =
         std::ranges::find(m_cache_vec, new_active, &cache_store::first);
-    m_active_name = rng_it->first;
-    m_current = *rng_it;
+    auto pos = static_cast<u32>(std::distance(m_cache_vec.begin(), rng_it));
+    m_active_name = m_cache_vec[pos].first;
+    m_current = pos;
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
@@ -119,7 +127,7 @@ bool wallchanger::cache_lib::modified() const noexcept {
 }
 
 std::vector<std::string> cache_lib::cache_list() const noexcept {
-  std::vector<std::string> ret(m_cache_vec.size());
+  std::vector<std::string> ret;
   for (auto &&name : m_cache_vec) {
     ret.push_back(name.first);
   }
@@ -172,15 +180,26 @@ cache_lib::move_cache_item(std::string_view source, std::string_view dest,
   return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
+const cache_lib::cache_lib_type &
+cache_lib::operator[](std::string_view name) const noexcept {
+  auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
+  return rng_it->second;
+}
+
+cache_lib::cache_lib_type &
+cache_lib::operator[](std::string_view name) noexcept {
+  auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
+  return rng_it->second;
+}
+
 void cache_lib::serialize() const {
   if (modified()) {
     nlohmann::json obj;
     obj["total_count"] = m_cache_vec.size();
-    obj["active"] = m_current.first;
+    obj["active"] = m_cache_vec[m_current].first;
     obj["cache_libraries"] = m_cache_vec;
 
-    std::ofstream obj_file(data_directory() + "/libraries.json",
-                           std::ios::out);
+    std::ofstream obj_file(data_directory() + "/libraries.json", std::ios::out);
     if (obj_file.good()) {
       obj_file << std::setw(4) << obj << "\n";
     }
@@ -188,8 +207,7 @@ void cache_lib::serialize() const {
 }
 
 bool cache_lib::deserialize() {
-  std::ifstream obj_file(data_directory() + "/libraries.json",
-                         std::ios::in);
+  std::ifstream obj_file(data_directory() + "/libraries.json", std::ios::in);
   if (obj_file.good()) {
     nlohmann::json obj;
     obj_file >> obj;
