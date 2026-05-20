@@ -1,6 +1,7 @@
 #include "wall_manager.hpp"
 #include "../log.hpp"
 #include "helpers.hpp"
+#include "wall_cache_library.hpp"
 #include <crc32.hpp>
 #include <fstream>
 
@@ -22,7 +23,7 @@ void Manager::store() {
 void Manager::mark_favorate() {
   if (!m_previous.empty()) {
     auto cur = m_previous.back();
-    auto cur_cache = m_cache.get_current()->get();
+    auto cur_cache = m_cache.get_current();
 
     auto fnd_it =
         std::ranges::find(cur_cache, cur["wallpaper"].get<std::string_view>(),
@@ -40,9 +41,13 @@ nlohmann::json Manager::next_wall() {
   std::mt19937 generator(random_device());
   auto dat = m_cache.get_cache(m_cache.active_cache_name());
   if (!dat) {
+    LOG_ERR(m_logger,
+            "Error Qccuren While Accessing Active "
+            "Collection.\nErrorCode:{}\nErrorMessage:{}\n",
+            dat.error().value(), dat.error().message());
     return {};
   }
-  auto cache = dat.value().get();
+  auto cache = dat.value();
   std::uniform_int_distribution<> dist(1, static_cast<int>(cache.size()));
 
   bool found = false;
@@ -150,11 +155,11 @@ bool Manager::add_to_collection(std::string_view collection_name,
   auto path_crc = static_cast<u32>(
       wallchanger::helper::crc(wall_path.begin(), wall_path.end()));
 
-  if (auto dat = m_cache.get_cache(collection_name)) {
-    auto &cache = dat.value().get();
+  if (m_cache.exists(collection_name)) {
+    auto &cache = m_cache[collection_name];
     cache.insert(wall.filename().string(), path_crc);
     m_path_buf.insert(wall_path);
-    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n", wall_path,
+    LOG_INFO(m_logger, "added wall:[{}] to collection:[{}]\n", wall.string(),
              collection_name);
     return true;
   }
@@ -165,9 +170,17 @@ std::vector<std::string> Manager::list_collection() const noexcept {
   return m_cache.cache_list();
 }
 
-std::optional<cache_lib::cache_lib_cref>
-Manager::get_cache(std::string_view name) const noexcept {
-  return m_cache.get_cache(name);
+cache_lib::const_slice
+Manager::get_cache(std::string_view name) const {
+  if(auto res = m_cache.get_cache(name);res.has_value()){
+    return res.value();
+  }else{
+    LOG_ERR(m_logger,
+            "Error Qccuren While Accessing Active "
+            "Collection.\nErrorCode:{}\nErrorMessage:{}\n",
+            res.error().value(), res.error().message());
+  }
+  return {};
 }
 
 bool Manager::merge_collection(std::string_view collection_1,
