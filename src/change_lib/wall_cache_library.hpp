@@ -24,7 +24,7 @@ public:
   [[nodiscard]] slice get_current() noexcept;
   [[nodiscard]] const_slice get_current() const noexcept;
 
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   insert(std::string name, cache_lib_type value) noexcept;
 
   [[nodiscard]] std::expected<const_slice, std::error_code>
@@ -33,22 +33,22 @@ public:
   [[nodiscard]] std::expected<slice, std::error_code>
   get_cache(std::string_view name) noexcept;
 
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   change_active(std::string_view new_active) noexcept;
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   rename_store(std::string_view from_name, std::string_view to_name) noexcept;
 
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   merge_cache(std::string_view col1, std::string_view col2) noexcept;
 
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   move_cache_item(std::string_view source, std::string_view dest,
                   std::string_view item_name) noexcept;
 
   [[nodiscard]] bool exists(std::string_view name) const noexcept;
   [[nodiscard]] size_t cache_count() const noexcept;
 
-  [[nodiscard]] std::expected<void, std::error_code>
+  [[nodiscard]] std::expected<bool, std::error_code>
   remove(std::string_view name) noexcept;
   [[nodiscard]] bool is_empty() const noexcept;
   [[nodiscard]] bool modified() const noexcept;

@@ -37,11 +37,12 @@ cache_lib::const_slice cache_lib::get_current() const noexcept {
                    m_cache_vec[m_current].second.size()};
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::insert(std::string name, cache_lib_type value) noexcept {
   if (!exists(name)) {
     m_cache_vec.emplace_back(std::move(name),
                              std::forward<cache_lib_type>(value));
+    return true;
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
@@ -64,7 +65,7 @@ cache_lib::get_cache(std::string_view name) noexcept {
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::change_active(std::string_view new_active) noexcept {
   if (exists(new_active)) {
     auto rng_it =
@@ -72,11 +73,12 @@ cache_lib::change_active(std::string_view new_active) noexcept {
     auto pos = static_cast<u32>(std::distance(m_cache_vec.begin(), rng_it));
     m_active_name = m_cache_vec[pos].first;
     m_current = pos;
+    return true;
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::rename_store(std::string_view from_name,
                         std::string_view to_name) noexcept {
   if (from_name != to_name) {
@@ -87,18 +89,20 @@ cache_lib::rename_store(std::string_view from_name,
       if (from_name == m_active_name) {
         m_active_name = to_name;
       }
+      return true;
     }
     return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
   }
   return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::remove(std::string_view name) noexcept {
   if (exists(name)) {
     auto rng_it = std::ranges::find(m_cache_vec, name, &cache_store::first);
     rng_it->second.clear();
     m_cache_vec.erase(rng_it);
+    return true;
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
 }
@@ -134,7 +138,7 @@ std::vector<std::string> cache_lib::cache_list() const noexcept {
   return ret;
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::merge_cache(std::string_view col1, std::string_view col2) noexcept {
   if (col1 != col2) {
     if (exists(col1) && exists(col2)) {
@@ -151,13 +155,14 @@ cache_lib::merge_cache(std::string_view col1, std::string_view col2) noexcept {
       (void)remove(col2);
 
       m_cache_vec.emplace_back(new_store);
+      return true;
     }
     return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
   }
   return std::unexpected{make_error_code(wall_errc::cache_frm_cache_to_same)};
 }
 
-std::expected<void, std::error_code>
+std::expected<bool, std::error_code>
 cache_lib::move_cache_item(std::string_view source, std::string_view dest,
                            std::string_view item_name) noexcept {
   if ((source != dest) && (dest != item_name)) {
@@ -172,6 +177,7 @@ cache_lib::move_cache_item(std::string_view source, std::string_view dest,
 
         dst->second.insert_elem(std::move(*itm_itr));
         src->second.erase(itm_itr);
+        return true;
       }
       return std::unexpected{make_error_code(wall_errc::cache_elem_not_exists)};
     }
