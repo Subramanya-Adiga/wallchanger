@@ -1,6 +1,7 @@
 #pragma once
 #include "wall_cmds.hpp"
 #include <span>
+#include "wall_manager.hpp"
 
 namespace wallchanger {
 
@@ -13,6 +14,7 @@ private:
   // no default constructor for po::parsed_options hence unique_ptr
   std::unique_ptr<po::parsed_options> m_parsed_options = nullptr;
   po::variables_map m_option_map;
+  Manager m_state;
 
   std::array<std::string, 4> m_group_name = {
       "global", "collection", "configuration", "history"};

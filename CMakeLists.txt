@@ -98,8 +98,7 @@ endforeach()
 
 # change_lib
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_lib")
-# change_service
-add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_service")
+# change_service add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_service")
 # changer
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_app")
 

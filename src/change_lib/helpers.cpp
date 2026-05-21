@@ -16,3 +16,13 @@ std::string config_directory() {
   auto ret = get_path(Folders::local_configuration)->string();
   return ret + "/wallchanger";
 }
+
+std::string cache_directory() {
+#ifdef OS_WINDOWS
+  auto ret = get_path(Folders::local_configuration)->string();
+#endif
+#ifdef OS_LINUX
+  auto ret = get_path(Folders::cache)->string();
+#endif
+  return ret + "/wallchanger";
+}

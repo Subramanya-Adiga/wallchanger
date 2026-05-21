@@ -18,11 +18,11 @@ public:
     log->set_level(spdlog::level::trace);
     log_vec_.emplace_back(log);
   }
-  void set_pattern(std::string_view name, std::string_view pattern) {
+  void set_pattern(std::string_view name, std::string pattern) {
     auto rng_it = std::ranges::find_if(
         log_vec_, [name](auto &log) { return (log->name() == name); });
     if (rng_it != std::ranges::end(log_vec_)) {
-      rng_it->get()->set_pattern(pattern.data());
+      rng_it->get()->set_pattern(std::forward<std::string>(pattern));
     }
   }
   std::shared_ptr<spdlog::logger> get_logger(std::string_view name) {

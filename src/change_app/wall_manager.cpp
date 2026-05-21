@@ -170,11 +170,10 @@ std::vector<std::string> Manager::list_collection() const noexcept {
   return m_cache.cache_list();
 }
 
-cache_lib::const_slice
-Manager::get_cache(std::string_view name) const {
-  if(auto res = m_cache.get_cache(name);res.has_value()){
+cache_lib::const_slice Manager::get_cache(std::string_view name) const {
+  if (auto res = m_cache.get_cache(name); res.has_value()) {
     return res.value();
-  }else{
+  } else {
     LOG_ERR(m_logger,
             "Error Qccuren While Accessing Active "
             "Collection.\nErrorCode:{}\nErrorMessage:{}\n",

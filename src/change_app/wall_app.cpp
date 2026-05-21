@@ -1,9 +1,12 @@
 #include "wall_app.hpp"
 #include "../log.hpp"
+#include <helpers.hpp>
 #include <print>
 
-wallchanger::application::application(std::span<char *> args) {
+wallchanger::application::application(std::span<char *> args)
+    : m_state("changer") {
   LOGGER_CREATE("changer");
+  LOGGER_SET_FILE("changer", cache_directory() + "/logs/changer_log.txt");
 
   po::positional_options_description pos;
   pos.add("command", 1).add("subargs", -1);
@@ -85,9 +88,11 @@ int wallchanger::application::run() {
       m_process_commands(subcommand_e::HISTORY);
 
     } else {
-      std::print("{} command not supported\n", command);
+      std::println("{} command not supported", command);
     }
   }
+
+  m_state.store();
 
   return 0;
 }
@@ -114,33 +119,78 @@ void wallchanger::application::m_collection_cmds() {
   m_process_commands(subcommand_e::COLLECTION);
   if (m_option_map.contains("create")) {
     auto res = m_option_map["create"].as<std::vector<std::string>>();
+    if (res.size() >= 2) {
+      if (!m_state.create_collection(res[0], res[1])) {
+        return;
+      }
+    } else {
+      if (!m_state.create_collection(res[0], {})) {
+        return;
+      }
+    }
   }
 
   if (m_option_map.contains("set-active")) {
     auto res = m_option_map["set-active"].as<std::string>();
+    if (!m_state.change_active(res)) {
+      return;
+    }
   }
 
   if (m_option_map.contains("list")) {
     auto res = m_option_map["list"].as<std::string>();
+    if (res == "collections") {
+      std::println("{:n}", m_state.list_collection());
+    } else {
+      for (const auto &x : m_state.get_cache(res)) {
+        std::println("{}", x.cache_value);
+      }
+    }
   }
 
   if (m_option_map.contains("add")) {
     auto res = m_option_map["add"].as<std::vector<std::string>>();
+    if (res.size() == 2) {
+      if (!m_state.add_to_collection(res[0], res[1])) {
+        return;
+      }
+    }
   }
 
   if (m_option_map.contains("remove")) {
     auto res = m_option_map["remove"].as<std::vector<std::string>>();
+    if (res.size() >= 2) {
+    } else {
+      if (!m_state.remove_collection(res[0])) {
+        return;
+      }
+    }
   }
 
   if (m_option_map.contains("rename")) {
     auto res = m_option_map["rename"].as<std::vector<std::string>>();
+    if (res.size() == 2) {
+      if (!m_state.rename_collection(res[0], res[1])) {
+        return;
+      }
+    }
   }
 
   if (m_option_map.contains("merge")) {
     auto res = m_option_map["merge"].as<std::vector<std::string>>();
+    if (res.size() == 2) {
+      if (!m_state.merge_collection(res[0], res[1])) {
+        return;
+      }
+    }
   }
 
   if (m_option_map.contains("move")) {
     auto res = m_option_map["move"].as<std::vector<std::string>>();
+    if (res.size() == 3) {
+      if (!m_state.move_wallpaper(res[1], res[2], res[0])) {
+        return;
+      }
+    }
   }
 }

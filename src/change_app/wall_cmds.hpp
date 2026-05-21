@@ -64,7 +64,7 @@ static const commandline collection_options{
      .description =
          "list wallpapers in collection [Col]. If Col Is Empty List All "
          "Collections.",
-     .value = po::value<std::string>()},
+     .value = po::value<std::string>()->implicit_value("collections")},
     {.command = "move,m",
      .description = "move wallpaper from one to another [wall] [col1] "
                     "[col2](unimplemented)",
@@ -94,10 +94,11 @@ static const commandline config_options{
      .description = "print help message",
      .value = nullptr}};
 
-static const commandline history_options{{.command = "reset-state",
-                             .description = "reset state in all collections",
-                             .value = nullptr},
-                            {.command = "help,h",
-                             .description = "print help message",
-                             .value = nullptr}};
+static const commandline history_options{
+    {.command = "reset-state",
+     .description = "reset state in all collections",
+     .value = nullptr},
+    {.command = "help,h",
+     .description = "print help message",
+     .value = nullptr}};
 } // namespace wallchanger
