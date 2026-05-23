@@ -13,10 +13,18 @@ FetchContent_Declare(
   Boost
   GIT_REPOSITORY https://github.com/boostorg/boost.git
   GIT_TAG "boost-1.91.0")
-
 set(BOOST_INCLUDE_LIBRARIES program_options)
 set(BOOST_ENABLE_CMAKE ON)
 
-FetchContent_MakeAvailable(Boost)
+FetchContent_Declare(
+  tabulate
+  GIT_REPOSITORY https://github.com/p-ranav/tabulate.git
+  GIT_TAG "v1.5")
+set(USE_CPP17 ON)
 
-target_link_libraries(changer PRIVATE change_lib Boost::program_options)
+FetchContent_MakeAvailable(Boost tabulate)
+
+target_include_directories(changer PRIVATE "${tabulate_SOURCE_DIR}/include")
+
+target_link_libraries(changer PRIVATE change_lib Boost::program_options
+                                      tabulate::tabulate)

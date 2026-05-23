@@ -2,6 +2,9 @@
 #include "../log.hpp"
 #include <helpers.hpp>
 #include <print>
+#include <ranges>
+#include <tabulate/font_style.hpp>
+#include <tabulate/table.hpp>
 
 wallchanger::application::application(std::span<char *> args)
     : m_state("changer") {
@@ -142,9 +145,21 @@ void wallchanger::application::m_collection_cmds() {
     if (res == "collections") {
       std::println("{:n}", m_state.list_collection());
     } else {
-      for (const auto &x : m_state.get_cache(res)) {
-        std::println("{}", x.cache_value);
+      tabulate::Table wall_table;
+      wall_table.add_row({"No", "Wallpaper", "PathID", "State"});
+      for (auto [idx, x] : std::views::enumerate(m_state.get_cache(res))) {
+        wall_table.add_row({std::to_string(idx), x.cache_value,
+                            std::to_string(x.loc),
+                            std::format("{}", x.cache_state)});
       }
+      for (int i = 0; i < 4; i++) {
+        wall_table[0][i]
+            .format()
+            .font_color(tabulate::Color::yellow)
+            .font_align(tabulate::FontAlign::center)
+            .font_style({tabulate::FontStyle::bold});
+      }
+      std::cout << wall_table << "\n";
     }
   }
 
