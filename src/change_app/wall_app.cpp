@@ -1,5 +1,6 @@
 #include "wall_app.hpp"
 #include "../log.hpp"
+#include "defines.hpp"
 #include <helpers.hpp>
 #include <print>
 #include <ranges>
@@ -74,7 +75,10 @@ int wallchanger::application::run() {
   if (m_option_map.contains("mark-favorate")) {
   }
 
-  if (m_option_map.contains("get-current")) {
+  if (m_option_map.contains("current-info")) {
+  }
+
+  if (m_option_map.contains("scrub")) {
   }
 
   if (m_option_map.contains("command")) {
@@ -133,8 +137,8 @@ void wallchanger::application::m_collection_cmds() {
     }
   }
 
-  if (m_option_map.contains("set-active")) {
-    auto res = m_option_map["set-active"].as<std::string>();
+  if (m_option_map.contains("activate")) {
+    auto res = m_option_map["activate"].as<std::string>();
     if (!m_state.change_active(res)) {
       return;
     }
@@ -152,7 +156,7 @@ void wallchanger::application::m_collection_cmds() {
                             std::to_string(x.loc),
                             std::format("{}", x.cache_state)});
       }
-      for (int i = 0; i < 4; i++) {
+      for (usize i = 0; i < 4; i++) {
         wall_table[0][i]
             .format()
             .font_color(tabulate::Color::yellow)

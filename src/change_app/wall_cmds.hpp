@@ -29,11 +29,15 @@ static const commandline global_options = {
     {.command = "previous,p",
      .description = "previous wallpaper",
      .value = nullptr},
-    {.command = "get-current",
+    {.command = "current-info",
      .description = "print informatin about current wallpaper",
      .value = nullptr},
     {.command = "mark-favorate",
      .description = "mark current wallpaper as Favorate",
+     .value = nullptr},
+    {.command = "scrub",
+     .description =
+         "drop references to removed path's and removed wallpaper's",
      .value = nullptr},
     {.command = "version", .description = "Program version", .value = nullptr},
     {.command = "help,h",
@@ -42,15 +46,15 @@ static const commandline global_options = {
 
 static const commandline collection_options{
     {.command = "create",
-     .description = "create new collection. [Col] [Path]",
+     .description = "create new collection. [Col] [Path] (Path Can Be Empty)",
      .value = po::value<std::vector<std::string>>()->multitoken()},
-    {.command = "set-active",
-     .description = "Change Active Collection To [Arg].",
+    {.command = "activate",
+     .description = "Activate Specified Collection. [Arg]",
      .value = po::value<std::string>()},
     {.command = "add",
      .description = "add wallpaper to collection. [Col] [Wall]",
      .value = po::value<std::vector<std::string>>()->multitoken()},
-    {.command = "remove,r",
+    {.command = "remove",
      .description = "remove collection or wallpaper from collection. [Col] "
                     "or [Col] [wall]",
      .value = po::value<std::vector<std::string>>()->multitoken()},
@@ -60,14 +64,15 @@ static const commandline collection_options{
     {.command = "merge",
      .description = "merge two collection. [col1] [col2]",
      .value = po::value<std::vector<std::string>>()->multitoken()},
-    {.command = "list,l",
+    {.command = "list",
      .description =
          "list wallpapers in collection [Col]. If Col Is Empty List All "
          "Collections.",
      .value = po::value<std::string>()->implicit_value("collections")},
-    {.command = "move,m",
-     .description = "move wallpaper from one to another [wall] [col1] "
-                    "[col2](unimplemented)",
+    {.command = "move",
+     .description =
+         "move wallpaper from one collection to another. [wall] [col1] "
+         "[col2]",
      .value = po::value<std::vector<std::string>>()->multitoken()},
     {.command = "help,h",
      .description = "print help message",
