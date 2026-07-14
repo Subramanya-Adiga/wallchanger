@@ -35,6 +35,7 @@ public:
 
   [[nodiscard]] std::expected<bool, std::error_code>
   change_active(std::string_view new_active) noexcept;
+
   [[nodiscard]] std::expected<bool, std::error_code>
   rename_store(std::string_view from_name, std::string_view to_name) noexcept;
 
@@ -45,11 +46,15 @@ public:
   move_cache_item(std::string_view source, std::string_view dest,
                   std::string_view item_name) noexcept;
 
-  [[nodiscard]] bool exists(std::string_view name) const noexcept;
-  [[nodiscard]] size_t cache_count() const noexcept;
-
   [[nodiscard]] std::expected<bool, std::error_code>
   remove(std::string_view name) noexcept;
+
+  [[nodiscard]] std::expected<bool, std::error_code>
+  remove_cache_item(std::string_view cache_name,
+                    std::string_view item_name) noexcept;
+
+  [[nodiscard]] bool exists(std::string_view name) const noexcept;
+  [[nodiscard]] size_t cache_count() const noexcept;
   [[nodiscard]] bool is_empty() const noexcept;
   [[nodiscard]] bool modified() const noexcept;
 

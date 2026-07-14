@@ -30,9 +30,10 @@ public:
                                       std::string_view collection_2) noexcept;
 
   [[nodiscard]] bool remove_collection(std::string_view collection) noexcept;
+  [[nodiscard]] bool remove_wallpaper(std::string_view collection,
+                                      std::string_view wallpaper_name) noexcept;
 
-  [[nodiscard]] cache_lib::const_slice
-  get_cache(std::string_view name) const;
+  [[nodiscard]] cache_lib::const_slice get_cache(std::string_view name) const;
 
   [[nodiscard]] bool move_wallpaper(std::string_view origin_collection,
                                     std::string_view dest_collection,

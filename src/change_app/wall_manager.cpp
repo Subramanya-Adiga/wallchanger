@@ -212,6 +212,23 @@ bool Manager::remove_collection(std::string_view collection) noexcept {
   return false;
 }
 
+bool Manager::remove_wallpaper(std::string_view collection,
+                               std::string_view wallpaper_name) noexcept {
+  if (auto res = m_cache.remove_cache_item(collection, wallpaper_name);
+      res.has_value()) {
+    LOG_INFO(m_logger, "removed wallpaper {} from collection:[{}]\n",
+             wallpaper_name, collection);
+    return true;
+  } else {
+    LOG_ERR(m_logger,
+            "Error Occured Removing Wallpaper {} From Collection "
+            "{}.\nErrorCode:{}\nErrorMessage:{}\n",
+            wallpaper_name, collection, res.error().value(),
+            res.error().message());
+  }
+  return false;
+}
+
 bool Manager::move_wallpaper(std::string_view origin_collection,
                              std::string_view dest_collection,
                              std::string_view wall_name) noexcept {

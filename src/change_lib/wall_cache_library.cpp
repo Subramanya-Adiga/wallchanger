@@ -2,6 +2,7 @@
 #include "helpers.hpp"
 #include "json_helper.hpp"
 #include "wall_error.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <nlohmann/json.hpp>
@@ -105,6 +106,27 @@ cache_lib::remove(std::string_view name) noexcept {
     return true;
   }
   return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
+}
+
+std::expected<bool, std::error_code>
+cache_lib::remove_cache_item(std::string_view cache_name,
+                             std::string_view item_name) noexcept {
+  if (cache_name != item_name) {
+    if (exists(cache_name)) {
+      auto rng_cache =
+          std::ranges::find(m_cache_vec, cache_name, &cache_store::first);
+      auto itm_it =
+          std::ranges::find(rng_cache->second, item_name,
+                            &cache_store::second_type::value_type::cache_value);
+      if (itm_it != std::ranges::end(rng_cache->second)) {
+        rng_cache->second.erase(itm_it);
+        return true;
+      }
+      return std::unexpected{make_error_code(wall_errc::cache_elem_not_exists)};
+    }
+    return std::unexpected{make_error_code(wall_errc::cache_does_not_exists)};
+  }
+  return std::unexpected{make_error_code(wall_errc::cache_name_item_name_same)};
 }
 
 bool cache_lib::is_empty() const noexcept { return m_cache_vec.empty(); }

@@ -175,6 +175,9 @@ void wallchanger::application::m_collection_cmds() {
   if (m_option_map.contains("remove")) {
     auto res = m_option_map["remove"].as<std::vector<std::string>>();
     if (res.size() >= 2) {
+      if (!m_state.remove_wallpaper(res[0], res[1])) {
+        return;
+      }
     } else {
       if (!m_state.remove_collection(res[0])) {
         return;
