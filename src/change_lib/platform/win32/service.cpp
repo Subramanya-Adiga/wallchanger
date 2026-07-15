@@ -1,7 +1,8 @@
-#include "win32_service.hpp"
+#include "service.hpp"
 
-#include "windows_helper.hpp"
+#include "helper.hpp"
 #include <cstddef>
+#include <print>
 
 wallchanger::platform::win32::service_base
     *wallchanger::platform::win32::service_base::service = nullptr;
@@ -167,7 +168,7 @@ wallchanger::platform::win32::service_helper::service_helper(
   if (m_sc_manager_handle =
           OpenSCManager(nullptr, nullptr, SC_MANAGER_ALL_ACCESS);
       m_sc_manager_handle == nullptr) {
-    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenSCManager"));
+    std::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenSCManager"));
   }
 }
 
@@ -186,13 +187,13 @@ void wallchanger::platform::win32::service_helper::install_service(
 
   if (!GetModuleFileName(nullptr, szUnquotedPath.data(),
                          static_cast<DWORD>(szUnquotedPath.size()))) {
-    fmt::print("{}\n",
+    std::print("{}\n",
                ::win32::error_handler_win32::fmt_msg("GetModuleFileName"));
     return;
   }
 
   auto fmt =
-      fmt::format("\"{}\"", ::win32::to_utf8(szUnquotedPath.data()).c_str());
+      std::format("\"{}\"", ::win32::to_utf8(szUnquotedPath.data()).c_str());
   if (m_service_handle = CreateService(
           m_sc_manager_handle, ::win32::to_utf16(m_name).c_str(),
           ::win32::to_utf16(description).c_str(), SERVICE_ALL_ACCESS,
@@ -200,10 +201,10 @@ void wallchanger::platform::win32::service_helper::install_service(
           ::win32::to_utf16(fmt).c_str(), nullptr, nullptr, nullptr, nullptr,
           nullptr);
       m_service_handle == nullptr) {
-    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("CreateService"));
+    std::print("{}\n", ::win32::error_handler_win32::fmt_msg("CreateService"));
     return;
   } else {
-    fmt::print("Service installed successfully\n");
+    std::print("Service installed successfully\n");
   }
 }
 
@@ -221,14 +222,14 @@ void wallchanger::platform::win32::service_helper::query_service_info() {
       lpsc = std::bit_cast<LPQUERY_SERVICE_CONFIG>(
           LocalAlloc(LMEM_FIXED, cbBufSize));
     } else {
-      fmt::print("{}\n",
+      std::print("{}\n",
                  ::win32::error_handler_win32::fmt_msg("QueryServiceConfig"));
       return;
     }
   }
 
   if (!QueryServiceConfig(m_service_handle, lpsc, cbBufSize, &dwBytesNeeded)) {
-    fmt::print("{}\n",
+    std::print("{}\n",
                ::win32::error_handler_win32::fmt_msg("QueryServiceConfig"));
     return;
   }
@@ -240,7 +241,7 @@ void wallchanger::platform::win32::service_helper::query_service_info() {
       lpsd = std::bit_cast<LPSERVICE_DESCRIPTION>(
           LocalAlloc(LMEM_FIXED, cbBufSize));
     } else {
-      fmt::print("{}\n",
+      std::print("{}\n",
                  ::win32::error_handler_win32::fmt_msg("QueryServiceConfig2"));
       return;
     }
@@ -249,32 +250,32 @@ void wallchanger::platform::win32::service_helper::query_service_info() {
   if (!QueryServiceConfig2(m_service_handle, SERVICE_CONFIG_DESCRIPTION,
                            std::bit_cast<LPBYTE>(lpsd), cbBufSize,
                            &dwBytesNeeded)) {
-    fmt::print("{}\n",
+    std::print("{}\n",
                ::win32::error_handler_win32::fmt_msg("QueryServiceConfig2"));
     return;
   }
 
-  fmt::print("{} configuration:\n Type:{:X}\n Start Type:{:X}\n Error "
+  std::print("{} configuration:\n Type:{:X}\n Start Type:{:X}\n Error "
              "Control:{:X}\n BinaryPath:{}\n Account:{}\n ",
              m_name, lpsc->dwServiceType, lpsc->dwStartType,
              lpsc->dwErrorControl, ::win32::to_utf8(lpsc->lpBinaryPathName),
              ::win32::to_utf8(lpsc->lpServiceStartName));
 
   if (lpsd->lpDescription != nullptr) {
-    fmt::print("Description:{}\n ", ::win32::to_utf8(lpsd->lpDescription));
+    std::print("Description:{}\n ", ::win32::to_utf8(lpsd->lpDescription));
   }
 
   if (lpsc->lpLoadOrderGroup != nullptr) {
-    fmt::print("Load Order Group:{}\n",
+    std::print("Load Order Group:{}\n",
                ::win32::to_utf8(lpsc->lpLoadOrderGroup));
   }
 
   if (lpsc->dwTagId != 0) {
-    fmt::print("Tag ID:{}\n ", lpsc->dwTagId);
+    std::print("Tag ID:{}\n ", lpsc->dwTagId);
   }
 
   if (lpsc->lpDependencies != nullptr) {
-    fmt::print(" Dependencies:{}\n", ::win32::to_utf8(lpsc->lpDependencies));
+    std::print(" Dependencies:{}\n", ::win32::to_utf8(lpsc->lpDependencies));
   }
 
   LocalFree(lpsc);
@@ -285,9 +286,9 @@ void wallchanger::platform::win32::service_helper::delete_service() {
   m_service_handle = m_open_service(DELETE);
 
   if (DeleteService(m_service_handle) == 0) {
-    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("DeleteService"));
+    std::print("{}\n", ::win32::error_handler_win32::fmt_msg("DeleteService"));
   } else {
-    fmt::print("{} service deleted succesfully", m_name);
+    std::print("{} service deleted succesfully", m_name);
   }
 }
 
@@ -298,7 +299,7 @@ wallchanger::platform::win32::service_helper::query_service_state() {
   status_info = std::bit_cast<LPSERVICE_STATUS>(
       LocalAlloc(LMEM_FIXED, sizeof(LPSERVICE_STATUS)));
   if (QueryServiceStatus(m_service_handle, status_info) == 0) {
-    fmt::print("{}\n",
+    std::print("{}\n",
                ::win32::error_handler_win32::fmt_msg("QueryServiceStatus"));
     LocalFree(status_info);
     return {};
@@ -324,7 +325,7 @@ bool wallchanger::platform::win32::service_helper::is_installed() {
                          &total_services, nullptr) == 0) {
     buffer_size = bytes_required;
   } else {
-    fmt::print("{}\n",
+    std::print("{}\n",
                ::win32::error_handler_win32::fmt_msg("EnumServicesStatus"));
   }
 
@@ -342,7 +343,7 @@ bool wallchanger::platform::win32::service_helper::is_installed() {
         more = true;
       }
     } else {
-      fmt::print("{}\n",
+      std::print("{}\n",
                  ::win32::error_handler_win32::fmt_msg("EnumServicesStatus"));
       return 0;
     }
@@ -375,7 +376,7 @@ wallchanger::platform::win32::service_helper::m_open_service(DWORD Access) {
   if (handle = OpenService(m_sc_manager_handle,
                            ::win32::to_utf16(m_name).c_str(), Access);
       handle == nullptr) {
-    fmt::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenService"));
+    std::print("{}\n", ::win32::error_handler_win32::fmt_msg("OpenService"));
     return {};
   }
   return handle;

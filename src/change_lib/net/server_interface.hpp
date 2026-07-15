@@ -2,6 +2,7 @@
 #include "connect_queue.hpp"
 #include "connection.hpp"
 #include "net_message.hpp"
+#include "net_common.hpp"
 
 namespace wallchanger::net {
 

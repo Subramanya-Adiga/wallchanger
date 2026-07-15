@@ -42,8 +42,8 @@ template <typename value> struct adl_serializer<wallchanger::cache<value>> {
       serialize_obj = {};
     } else {
       auto arr = json::array();
-      for (auto &&cache_obj : rhs) {
-        arr.push_back(cache_obj);
+      for (auto &&x : rhs) {
+        arr.push_back(x);
       }
       serialize_obj = arr;
     }

@@ -2,51 +2,65 @@ add_library(change_lib STATIC)
 
 target_sources(
   change_lib
-  PRIVATE wall_cache_library.cpp wall_background.cpp path_table.cpp
-          wall_error.cpp json_helper.hpp
+  PRIVATE wall_cache_library.cpp
+          wall_background.cpp
+          path_table.cpp
+          wall_error.cpp
+          json_helper.hpp
+          helpers.cpp
+          known-folders.cpp
   PUBLIC FILE_SET
          headers
          TYPE
          HEADERS
          FILES
+         defines.hpp
+         helpers.hpp
+         crc32.hpp
          wall_error.hpp
          message_type.hpp
          path_table.hpp
          wall_cache_library.hpp
          wall_cache.hpp
          wall_background.hpp
-         net/net_common.hpp
-         net/connect_queue.hpp
-         net/connection.hpp
-         net/client_interface.hpp
-         net/server_interface.hpp)
+         known-folders.hpp)
 
 if(WIN32)
   target_sources(
     change_lib
-    PRIVATE platform/platform_win32.cpp platform/win32_service.cpp
-            platform/windows_helper.cpp
+    PRIVATE platform/win32/bg_handler.cpp platform/win32/service.cpp
+            platform/win32/helper.cpp platform/win32/common.cpp
+            platform/win32/win32_known_folders.cpp
     PUBLIC FILE_SET
            headers
            TYPE
            HEADERS
            FILES
-           platform/platform_win32.hpp
-           platform/win32_service.hpp
-           platform/windows_helper.hpp)
+           platform/win32/common.hpp
+           platform/win32/win32_known_folders.hpp
+           platform/win32/bg_handler.hpp
+           platform/win32/service.hpp
+           platform/win32/helper.hpp)
   set_target_properties(
-    change_lib
-    PROPERTIES PUBLIC_HEADER platform/platform_win32.hpp
-               platform/win32_service.hpp platform/windows_helper.hpp)
+    change_lib PROPERTIES PUBLIC_HEADER platform/win32/bg_handler.hpp
+                          platform/win32/service.hpp platform/win32/helper.hpp)
 endif()
 
 if(LINUX)
   target_sources(
     change_lib
-    PRIVATE platform/platform_linux.cpp
-    PUBLIC FILE_SET headers TYPE HEADERS FILES platform/platform_linux.hpp)
+    PRIVATE platform/linux/bg_handler.cpp platform/linux/common.cpp
+            platform/linux/linux_known_folders.cpp
+    PUBLIC FILE_SET
+           headers
+           TYPE
+           HEADERS
+           FILES
+           platform/linux/bg_handler.hpp
+           platform/linux/common.hpp
+           platform/linux/linux_known_folders.hpp)
   set_target_properties(change_lib PROPERTIES PUBLIC_HEADER
-                                              platform/platform_linux.hpp)
+                                              platform/linux/bg_handler.hpp)
 endif()
 
 target_link_libraries(change_lib PUBLIC project_options project_dependency)

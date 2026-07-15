@@ -1,7 +1,10 @@
 #pragma once
+#include "defines.hpp"
+#include <format>
+
 namespace wallchanger {
 
-enum class cache_state_e : uint32_t {
+enum class cache_state_e : u8 {
   null,
   unused,
   used,
@@ -11,10 +14,10 @@ enum class cache_state_e : uint32_t {
 template <typename Value> struct cache_item {
   Value cache_value;
   cache_state_e cache_state{};
-  uint32_t loc{};
+  u32 loc{};
   cache_item() = default;
 
-  explicit cache_item(Value cache_value1, cache_state_e state1, uint32_t loc1)
+  explicit cache_item(Value cache_value1, cache_state_e state1, u32 loc1)
       : cache_value(std::forward<Value>(cache_value1)), cache_state(state1),
         loc(loc1) {}
   auto operator<=>(const cache_item &) const = default;
@@ -27,6 +30,8 @@ template <typename Value> class cache {
 public:
   using value_type = typename std::vector<cache_t>::value_type;
   using size_type = typename std::vector<cache_t>::size_type;
+  using pointer = typename std::vector<cache_t>::pointer;
+  using const_pointer = typename std::vector<cache_t>::const_pointer;
   using reference = typename std::vector<cache_t>::reference;
   using const_reference = typename std::vector<cache_t>::const_reference;
   using iterator = typename std::vector<cache_t>::iterator;
@@ -45,7 +50,7 @@ public:
   }
 
   template <typename val>
-  void insert(val &&value, uint32_t loc)
+  void insert(val &&value, u32 loc)
     requires std::same_as<val, Value>
   {
     if (!contains(value)) {
@@ -76,6 +81,12 @@ public:
   [[nodiscard]] bool empty() const noexcept { return m_list.empty(); }
   [[nodiscard]] bool modified() const noexcept { return m_modified; }
 
+  [[nodiscard]] pointer data() noexcept {
+    m_modified = true;
+    return m_list.data();
+  }
+  [[nodiscard]] const_pointer data() const noexcept { return m_list.data(); }
+  
   // Iterators
   [[nodiscard]] iterator begin() noexcept {
     m_modified = true;
@@ -133,38 +144,35 @@ private:
 } // namespace wallchanger
 
 template <>
-struct fmt::formatter<wallchanger::cache_state_e>
-    : fmt::formatter<std::string_view> {
-  template <typename FormatContext>
-  auto fomrmat(wallchanger::cache_state_e obj, FormatContext &ctx) const {
-    std::string_view out = "NULL";
-    switch (obj) {
+struct std::formatter<wallchanger::cache_state_e>
+    : std::formatter<std::string_view> {
+  auto format(wallchanger::cache_state_e state,
+              std::format_context &ctx) const {
+    std::string_view name = "unknown";
+    switch (state) {
     case wallchanger::cache_state_e::null:
-      out = "NULL";
+      name = "null";
       break;
     case wallchanger::cache_state_e::unused:
-      out = "Unused";
+      name = "unused";
       break;
     case wallchanger::cache_state_e::used:
-      out = "Used";
+      name = "used";
       break;
     case wallchanger::cache_state_e::favorate:
-      out = "Favorate";
+      name = "favorate";
       break;
     }
-    return formatter<std::string_view>::format(out, ctx);
+    return std::formatter<std::string_view>::format(name, ctx);
   }
 };
-
 template <>
-struct fmt::formatter<wallchanger::cache_item<std::string>>
-    : fmt::formatter<string_view> {
-  template <typename FormatContext>
+struct std::formatter<wallchanger::cache_item<std::string>>
+    : std::formatter<string_view> {
   auto format(const wallchanger::cache_item<std::string> &obj,
-              FormatContext &ctx) const {
-    std::string out =
-        fmt::format("Value:{}\n,State:{}\n,LocID:{:X}\n", obj.cache_value,
-                    fmt::underlying(obj.cache_state), obj.loc);
-    return formatter<string_view>::format(out, ctx);
+              std::format_context &ctx) const {
+    auto out = std::format("Value:{}\nState:{}\nLocID:{:X}\n", obj.cache_value,
+                           obj.cache_state, obj.loc);
+    return std::formatter<string_view>::format(out, ctx);
   }
 };

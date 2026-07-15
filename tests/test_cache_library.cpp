@@ -1,3 +1,4 @@
+#include "catch2/matchers/catch_matchers_range_equals.hpp"
 #include <wall_cache.hpp>
 #include <wall_cache_library.hpp>
 #define CATCH_CONFIG_MAIN
@@ -47,8 +48,8 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     wallchanger::cache_lib lib;
     lib.insert("cache1", cache);
     lib.insert("cache2", cache2);
-    REQUIRE(lib.get_cache("cache2").value().get().empty() == true);
-    REQUIRE(lib.get_cache("cache1").value().get().empty() == false);
+    REQUIRE(lib.get_cache("cache2").value().empty() == true);
+    REQUIRE(lib.get_cache("cache1").value().empty() == false);
   }
   SECTION("erase") {
     wallchanger::cache_lib lib;
@@ -63,7 +64,7 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
     lib.insert("cache2", cache2);
     auto lib55 = lib.get_cache("cache1");
     lib.change_active("cache1");
-    REQUIRE(lib.get_current().value().get() == cache);
+    REQUIRE_THAT(lib.get_current(),Catch::Matchers::RangeEquals(cache));
   }
   SECTION("merge") {
     wallchanger::cache_lib lib;
@@ -77,7 +78,7 @@ TEST_CASE("Library Functionality", "[cache lib function]") {
                                                      cache2.size());
     std::ranges::merge(cache, cache2, new_cache.begin());
     lib.merge_cache("cache1", "cache2");
-    auto merged = lib.get_cache("cache1").value().get();
-    REQUIRE(new_cache == merged);
+    auto merged = lib.get_cache("cache1").value();
+    REQUIRE_THAT(merged,Catch::Matchers::RangeEquals(new_cache));
   }
 }

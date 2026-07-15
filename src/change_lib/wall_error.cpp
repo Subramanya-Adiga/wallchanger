@@ -15,6 +15,8 @@ struct wall_error_catagory : std::error_category {
       return "Cache Already Exists";
     case wallchanger::wall_errc::cache_frm_cache_to_same:
       return "Cache From And Cache To Names Cannot Be Same";
+    case wallchanger::wall_errc::cache_name_item_name_same:
+      return "Cache Name And Item Name Are Same";
     default:
       return "(Unrecognized Error)";
     }

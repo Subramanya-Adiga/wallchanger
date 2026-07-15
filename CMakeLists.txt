@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.30)
 
 project(
   Wallchanger
@@ -7,14 +7,18 @@ project(
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 include(StanderdProjectSettings)
+include(FetchContent)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(project_options INTERFACE)
-target_compile_features(project_options INTERFACE cxx_std_20)
+target_compile_features(project_options INTERFACE cxx_std_23)
 
-if(CMAKE_HOST_WIN32)
+if(MINGW OR MSVC)
   target_compile_definitions(project_options INTERFACE _CRT_SECURE_NO_WARNINGS
                                                        NOMINMAX UNICODE)
+  if(MINGW)
+    target_link_libraries(project_options INTERFACE stdc++exp)
+  endif()
 endif()
 
 set_project_warnings(project_options)
@@ -36,34 +40,37 @@ target_precompile_headers(
   <iostream>
   <tuple>
   <variant>
-  <range/v3/all.hpp>
-  <fmt/format.h>
-  <nlohmann/json.hpp>
-  "src/config.hpp")
+  <functional>
+  <random>
+  <wallchanger_info.hpp>
+  <nlohmann/json.hpp>)
 
-find_package(range-v3 REQUIRED)
-find_package(fmt REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(sol2 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options)
-find_package(nlohmann_json REQUIRED)
-find_package(asio REQUIRED)
-find_package(Lua REQUIRED)
-find_package(outcome REQUIRED)
+FetchContent_Declare(
+  spdlog
+  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_TAG "v1.17.0")
+set(SPDLOG_USE_STD_FORMAT ON)
 
-target_include_directories(project_dependency INTERFACE ${LUA_INCLUDE_DIR})
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG "v3.12.0")
+
+FetchContent_Declare(
+  lua
+  GIT_REPOSITORY https://github.com/marovira/lua.git
+  GIT_TAG "5.4.8")
+
+FetchContent_Declare(
+  sol2
+  GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+  GIT_TAG "v3.5.0")
+
+FetchContent_MakeAvailable(spdlog nlohmann_json sol2 lua)
 
 target_link_libraries(
-  project_dependency
-  INTERFACE range-v3::range-v3
-            fmt::fmt-header-only
-            sol2
-            ${LUA_LIBRARIES}
-            spdlog::spdlog_header_only
-            Boost::program_options
-            nlohmann_json::nlohmann_json
-            asio::asio
-            outcome::hl)
+  project_dependency INTERFACE spdlog::spdlog_header_only sol2 lua::lua
+                               nlohmann_json::nlohmann_json)
 
 message(STATUS "Project will be installed to ${CMAKE_INSTALL_PREFIX}")
 include(GNUInstallDirs)
@@ -91,17 +98,32 @@ endforeach()
 
 # change_lib
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_lib")
-# change_service
-add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_service")
+# change_service add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_service")
 # changer
 add_subdirectory("${CMAKE_SOURCE_DIR}/src/change_app")
 
-use_libcxx(project_options FALSE)
+configure_file(${CMAKE_SOURCE_DIR}/config_version.h.in
+               ${CMAKE_BINARY_DIR}/generated_files/wallchanger_info.hpp @ONLY)
+
+target_include_directories(project_dependency
+                           INTERFACE ${CMAKE_BINARY_DIR}/generated_files)
+add_custom_target(
+  copy_compile_commands ALL
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_if_different
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json"
+  DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json
+  COMMENT "Copying compile_commands.json to source directory")
 
 if(BUILD_TESTING)
-  find_package(Catch2 REQUIRED)
-  find_package(benchmark REQUIRED)
-  include(Catch)
+  FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG "v3.13.0")
+
+  FetchContent_MakeAvailable(catch2)
+
   add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
   add_subdirectory("${CMAKE_SOURCE_DIR}/benchmarking")
 

@@ -3,12 +3,13 @@
 
 namespace wallchanger {
 
-enum class wall_errc {
+enum class wall_errc : uint8_t {
   Success = 0,
   cache_does_not_exists = 1,
-  cache_exists,
-  cache_frm_cache_to_same,
-  cache_elem_not_exists,
+  cache_exists = 3,
+  cache_frm_cache_to_same = 4,
+  cache_elem_not_exists = 5,
+  cache_name_item_name_same = 6,
 };
 
 std::error_code make_error_code(wall_errc);
