@@ -215,4 +215,11 @@ void wallchanger::application::m_collection_cmds() {
       }
     }
   }
+
+  if (m_option_map.contains("validate")) {
+    auto res = m_option_map["validate"].as<std::string>();
+    if (!m_state.validate_collection(res)) {
+      return;
+    }
+  }
 }

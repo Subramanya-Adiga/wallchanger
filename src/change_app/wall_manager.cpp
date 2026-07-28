@@ -3,7 +3,10 @@
 #include "helpers.hpp"
 #include "wall_cache_library.hpp"
 #include <crc32.hpp>
+#include <filesystem>
 #include <fstream>
+#include <print>
+#include <format>
 
 namespace wallchanger {
 Manager::Manager(std::string_view logger_name)
@@ -248,6 +251,33 @@ bool Manager::move_wallpaper(std::string_view origin_collection,
             wall_name, origin_collection, dest_collection, res.error().value(),
             res.error().message());
   }
+  return false;
+}
+
+bool Manager::validate_collection(std::string_view collection) noexcept {
+  namespace fs = std::filesystem;
+  if (m_cache.exists(collection)) {
+    const auto cache = m_cache.get_cache(collection);
+
+    std::vector<std::string> invalid;
+    invalid.reserve(1);
+
+    for (auto &&ent : cache.value()) {
+
+      auto loc = m_path_buf.get(ent.loc).value().get();
+      auto test_loc = loc.append(ent.cache_value);
+
+      if (!fs::exists(test_loc)) {
+        invalid.emplace_back(test_loc.string());
+      }
+    }
+    std::println("Validated Collection: {}\nTotal Entries: {}\nValid "
+                 "Entries: {}\nInvalid Entries: {}\n{}",
+                 collection, cache->size(), cache->size() - invalid.size(),
+                 invalid.size(), invalid);
+    return true;
+  }
+  LOG_ERR(m_logger, "Error Collection Does Not Exists: {}\n", collection);
   return false;
 }
 } // namespace wallchanger

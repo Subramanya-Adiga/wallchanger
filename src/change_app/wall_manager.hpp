@@ -38,6 +38,7 @@ public:
   [[nodiscard]] bool move_wallpaper(std::string_view origin_collection,
                                     std::string_view dest_collection,
                                     std::string_view wall_name) noexcept;
+  [[nodiscard]] bool validate_collection(std::string_view collection) noexcept;
 
 private:
   std::string_view m_logger;
