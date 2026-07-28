@@ -1,7 +1,7 @@
 #pragma once
 #include "wall_cmds.hpp"
-#include <span>
 #include "wall_manager.hpp"
+#include <span>
 
 namespace wallchanger {
 
@@ -17,13 +17,18 @@ private:
   Manager m_state;
 
   std::array<std::string, 4> m_group_name = {
-      "global", "collection", "configuration", "history"};
+      "global",
+      "collection",
+      "configuration",
+      "history",
+  };
 
   std::vector<std::pair<std::string_view, commandline>> m_cmds = {
       {m_group_name[subcommand_e::GLOBAL], global_options},
       {m_group_name[subcommand_e::COLLECTION], collection_options},
       {m_group_name[subcommand_e::CONFIG], config_options},
-      {m_group_name[subcommand_e::HISTORY], history_options}};
+      {m_group_name[subcommand_e::HISTORY], history_options},
+  };
 
   std::vector<commandgroup> m_group_vec;
 
